@@ -120,6 +120,43 @@ func (t *Table) Write(w io.Writer, opts ...data.TableOpt) error {
 	}
 }
 
+func (t *Table) ForMap(fn data.MapIterator, opts ...data.TableOpt) {
+	// Set option flags
+	t.applyOpt(opts)
+
+	// Return if fn is nil
+	if fn == nil {
+		return
+	}
+
+	// Create the map
+	m := make(map[string]interface{}, len(t.w))
+	for _, f := range t.header.order {
+		k := f.Key()
+		m[k] = nil
+	}
+	// Iterate through rows
+	for i, row := range t.r {
+		//v := t.valuesForRow(row)
+		fn(i, m)
+	}
+}
+
+func (t *Table) ForArray(fn data.ArrayIterator, opts ...data.TableOpt) {
+	// Set option flags
+	t.applyOpt(opts)
+
+	// Return if fn is nil
+	if fn == nil {
+		return
+	}
+
+	// Iterate through rows
+	for i, row := range t.r {
+		fn(i, t.valuesForRow(row))
+	}
+}
+
 /////////////////////////////////////////////////////////////////////
 // OPTIONS
 
@@ -293,6 +330,7 @@ func (t *Table) doReadRow(order []int, row []string) error {
 func (t *Table) appendRow(r *row) {
 	t.r = append(t.r, r)
 	t.h = uint(len(t.r))
+	t.types.scan(r)
 }
 
 // setHeight sets the absolute height of the table, adding and

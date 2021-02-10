@@ -10,6 +10,7 @@ import (
 // TYPES
 
 type header struct {
+	*types
 	fields map[string]*field
 	order  []*field
 }
@@ -24,6 +25,7 @@ type field struct {
 
 func NewHeader(cap uint) *header {
 	h := new(header)
+	h.types = NewTypes(cap)
 	h.fields = make(map[string]*field, int(cap))
 	h.order = make([]*field, 0, int(cap))
 	return h

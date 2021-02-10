@@ -9,6 +9,8 @@ import (
 // TYPES
 
 type TableOpt func(Table)
+type MapIterator func(int, map[string]interface{})
+type ArrayIterator func(int, []interface{})
 
 /////////////////////////////////////////////////////////////////////
 // INTERFACES
@@ -20,8 +22,15 @@ type Table interface {
 	// Write data with table options
 	Write(io.Writer, ...TableOpt) error
 
+	// Iterate through rows returning a map of values
+	ForMap(MapIterator, ...TableOpt)
+
+	// Iterate through rows returning an array of values
+	ForArray(ArrayIterator, ...TableOpt)
+
 	// OptHeader used on Read to indicate there is a CSV header and
-	// with Write to output header in addition to data
+	// with Write to output header in addition to data. Ignored for
+	// ForMap and ForArray
 	OptHeader() TableOpt
 
 	// OptAscii used on Write to output ASCII table instead of CSV. Option
@@ -29,7 +38,7 @@ type Table interface {
 	// characters (data.BorderDefault or data.BorderLines)
 	OptAscii(uint, string) TableOpt
 
-	// OptFloat used on Read to indicate some cells are floats
+	// OptFloat used on Read, Write and For to interpret floats
 	OptFloat() TableOpt
 
 	// OptDuration used on Read to indicate some cells are durations (h,m,s,ms,ns)

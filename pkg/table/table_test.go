@@ -86,3 +86,20 @@ func Test_Table_006(t *testing.T) {
 		t.Error(err)
 	}
 }
+
+func Test_Table_007(t *testing.T) {
+	c := table.NewTable(data.ZeroSize)
+	r := strings.NewReader(
+		`0,1
+1,2
+1,
+,2
+`,
+	)
+	if err := c.Read(r, c.OptNil()); err != nil {
+		t.Error(err)
+	}
+	c.ForArray(func(i int, a []interface{}) {
+		t.Log(i, "=>", a)
+	}, c.OptNil())
+}
