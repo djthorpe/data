@@ -1,13 +1,10 @@
 package table
 
 import (
-	"encoding/csv"
 	"errors"
 	"fmt"
 	"io"
-	"math"
-	"strconv"
-	"strings"
+	"sort"
 	"time"
 
 	"github.com/djthorpe/data"
@@ -16,38 +13,24 @@ import (
 /////////////////////////////////////////////////////////////////////
 // TYPES
 
-type optFlag uint64
-
 type Table struct {
-	optFlag
+	opts struct {
+		d, o       optFlag
+		tz         *time.Location
+		dur        time.Duration
+		border     []rune
+		asciiwidth int
+		csvDelim   rune
+		transform  []data.TransformFunc
+		iterator   data.IteratorFunc
+		compare    data.CompareFunc
+	}
 	*header
-
-	r      []*row
-	w, h   uint
-	d      time.Duration
-	tz     *time.Location
-	border string
+	r []*row
 }
 
-/////////////////////////////////////////////////////////////////////
-// CONSTANTS
-
-const (
-	optHeader optFlag = (1 << iota)
-	optBool
-	optDate
-	optDatetime
-	optDuration
-	optUint
-	optInt
-	optFloat
-	optNil
-	optAscii
-)
-
-const (
-	nilString = "<nil>"
-)
+type funcRowReader func(int, []string) error
+type funcRowWriter func(int, []interface{}) ([]string, error)
 
 /////////////////////////////////////////////////////////////////////
 // LIFECYCLE
@@ -55,189 +38,143 @@ const (
 func NewTable(size data.Size) data.Table {
 	t := new(Table)
 
-	// Set width and height of the table
-	t.w, t.h = sizeFor(size)
+	// Set width and height of the table, if error is returned
+	// then set nil
+	if w, h, err := sizeFor(size); err != nil {
+		return nil
+	} else {
+		t.header = NewHeader(w)
 
-	// Set capacity and then width of the header
-	t.header = NewHeader(t.w)
-	t.header.setWidth(t.w)
-
-	// Set capacity and then height of the rows
-	t.r = make([]*row, 0, int(t.h))
-	t.setHeight(t.h)
+		// Append any existing rows
+		t.r = make([]*row, h)
+		for i := 0; i < h; i++ {
+			t.r[i] = NewRow(nil)
+		}
+	}
 
 	// Return initial table
 	return t
 }
 
 /////////////////////////////////////////////////////////////////////
-// METHODS
+// PUBLIC METHODS
 
 func (t *Table) Read(r io.Reader, opts ...data.TableOpt) error {
 	// Set option flags
 	t.applyOpt(opts)
 
-	// Create a CSV reader
-	csv := csv.NewReader(r)
-
-	// Iterate through rows
-	var order []int
-	for {
-		if row, err := csv.Read(); errors.Is(err, io.EOF) {
-			break
-		} else if err != nil {
-			return err
-		} else if t.hasOpt(optHeader) {
-			if order, err = t.doReadHeader(row); err != nil {
-				return err
-			} else {
-				t.setOpt(optHeader, false)
+	// Perform read
+	switch {
+	case t.hasOpt(optCsv):
+		fallthrough
+	default:
+		return t.readCsv(r, func(i int, values []string) error {
+			row := NewRow(make([]interface{}, len(values)))
+			for j, v := range values {
+				if v_, err := t.inValue(i, j, v); err != nil {
+					return err
+				} else {
+					row.v[j] = v_
+				}
 			}
-		} else if err := t.doReadRow(order, row); err != nil {
-			return err
-		}
+			// Call row iterator
+			if err := t.rowIterator(i, row.v); err == nil {
+				t.r = append(t.r, row)
+			} else if errors.Is(err, data.ErrSkipTransform) == false {
+				return err
+			}
+			// Return success
+			return nil
+		})
 	}
-
-	// Return success
-	return nil
 }
 
+// Write data with table options
 func (t *Table) Write(w io.Writer, opts ...data.TableOpt) error {
 	// Set option flags
 	t.applyOpt(opts)
 
 	// Return nil if no width or height
-	if t.w == 0 || t.h == 0 {
+	if len(t.r) == 0 || t.header.w == 0 {
 		return nil
 	}
 
-	// Write Ascii
+	// Perform write
 	switch {
 	case t.hasOpt(optAscii):
-		return t.writeAscii(w)
+		return t.writeAscii(w, func(i int, row []interface{}) ([]string, error) {
+			result := make([]string, len(row))
+			for j, v := range row {
+				if v_, err := t.outValue(i, j, v); err != nil {
+					return nil, err
+				} else if v__, ok := v_.(string); ok {
+					result[j] = v__
+				} else {
+					result[j] = fmt.Sprint(v_)
+				}
+			}
+			return result, nil
+		})
+	case t.hasOpt(optCsv):
+		fallthrough
 	default:
-		return t.writeCsv(w)
+		return t.writeCsv(w, func(i int, row []interface{}) ([]string, error) {
+			result := make([]string, len(row))
+			for j, v := range row {
+				if v_, err := t.outValue(i, j, v); err != nil {
+					return nil, err
+				} else if v__, ok := v_.(string); ok {
+					result[j] = v__
+				} else {
+					result[j] = fmt.Sprint(v_)
+				}
+			}
+			return result, nil
+		})
 	}
 }
 
-func (t *Table) ForMap(fn data.MapIterator, opts ...data.TableOpt) {
+// Stream data with table options
+func (t *Table) Stream(w io.Writer, r io.Reader, opts ...data.TableOpt) error {
 	// Set option flags
 	t.applyOpt(opts)
 
-	// Return if fn is nil
-	if fn == nil {
-		return
+	// Return nil if no width or height
+	if len(t.r) == 0 || t.header.w == 0 {
+		return nil
 	}
 
-	// Create the map
-	m := make(map[string]interface{}, len(t.w))
-	for _, f := range t.header.order {
-		k := f.Key()
-		m[k] = nil
-	}
-	// Iterate through rows
-	for i, row := range t.r {
-		//v := t.valuesForRow(row)
-		fn(i, m)
+	// Not yet implemented
+	return nil
+}
+
+// Col returns column information for a zero-indexed table column
+func (t *Table) Col(i int) data.TableCol {
+	if i < 0 || i >= t.header.w {
+		return nil
+	} else {
+		return t.header.col(i)
 	}
 }
 
-func (t *Table) ForArray(fn data.ArrayIterator, opts ...data.TableOpt) {
-	// Set option flags
-	t.applyOpt(opts)
-
-	// Return if fn is nil
-	if fn == nil {
-		return
-	}
-
-	// Iterate through rows
-	for i, row := range t.r {
-		fn(i, t.valuesForRow(row))
+// Sort does a quicksort on the table using a comparison function
+func (t *Table) Sort(fn data.CompareFunc) {
+	if fn != nil {
+		t.opts.compare = fn
+		sort.Sort(t)
 	}
 }
 
-/////////////////////////////////////////////////////////////////////
-// OPTIONS
-
-func (t *Table) OptHeader() data.TableOpt {
-	return func(t data.Table) {
-		t.(*Table).setOpt(optHeader, true)
-	}
+func (t *Table) Len() int {
+	return len(t.r)
 }
 
-func (t *Table) OptUint() data.TableOpt {
-	return func(t data.Table) {
-		t.(*Table).setOpt(optUint, true)
-	}
+func (t *Table) Less(i, j int) bool {
+	return t.opts.compare(t.r[i].row(t.header.w), t.r[j].row(t.header.w))
 }
 
-func (t *Table) OptInt() data.TableOpt {
-	return func(t data.Table) {
-		t.(*Table).setOpt(optInt, true)
-	}
-}
-
-func (t *Table) OptFloat() data.TableOpt {
-	return func(t data.Table) {
-		t.(*Table).setOpt(optFloat, true)
-	}
-}
-
-func (t *Table) OptNil() data.TableOpt {
-	return func(t data.Table) {
-		t.(*Table).setOpt(optNil, true)
-	}
-}
-
-func (t *Table) OptDuration(trunc time.Duration) data.TableOpt {
-	return func(t data.Table) {
-		t.(*Table).setOpt(optDuration, true)
-		t.(*Table).d = trunc
-	}
-}
-
-func (t *Table) OptDate(tz *time.Location) data.TableOpt {
-	return func(t data.Table) {
-		t.(*Table).setOpt(optDate, true)
-		if tz == nil {
-			if t.(*Table).tz == nil {
-				t.(*Table).tz = time.Local
-			}
-		} else {
-			t.(*Table).tz = tz
-		}
-	}
-}
-
-func (t *Table) OptDatetime(tz *time.Location) data.TableOpt {
-	return func(t data.Table) {
-		t.(*Table).setOpt(optDatetime, true)
-		if tz == nil {
-			if t.(*Table).tz == nil {
-				t.(*Table).tz = time.Local
-			}
-		} else {
-			t.(*Table).tz = tz
-		}
-	}
-}
-
-func (t *Table) OptBool() data.TableOpt {
-	return func(t data.Table) {
-		t.(*Table).setOpt(optBool, true)
-	}
-}
-
-func (t *Table) OptAscii(width uint, border string) data.TableOpt {
-	return func(t data.Table) {
-		t.(*Table).setOpt(optAscii, true)
-		if border == "" {
-			t.(*Table).border = data.BorderDefault
-		} else {
-			t.(*Table).border = border
-		}
-	}
+func (t *Table) Swap(i, j int) {
+	t.r[i], t.r[j] = t.r[j], t.r[i]
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -245,8 +182,7 @@ func (t *Table) OptAscii(width uint, border string) data.TableOpt {
 
 func (t *Table) String() string {
 	str := "<table"
-	str += fmt.Sprintf(" size={ %v,%v }", t.w, t.h)
-	str += fmt.Sprint(" ", t.header)
+	str += " " + fmt.Sprint(t.header)
 	for i, r := range t.r {
 		str += fmt.Sprint(" ", i, ":", r)
 	}
@@ -256,242 +192,54 @@ func (t *Table) String() string {
 /////////////////////////////////////////////////////////////////////
 // PRIVATE METHODS
 
-func (t *Table) applyOpt(opts []data.TableOpt) {
-	t.optFlag = 0
-	t.d = time.Nanosecond
-	t.tz = time.Local
-	for _, opt := range opts {
-		opt(t)
+// sizeFor returns w,h as integers, and returns error
+// if the size does not contain positive (or zero) integers
+func sizeFor(size data.Size) (int, int, error) {
+	if size.W < 0 || size.H < 0 {
+		return 0, 0, data.ErrBadParameter
 	}
-}
-
-func (t *Table) hasOpt(f optFlag) bool {
-	return t.optFlag&f == f
-}
-
-func (t *Table) setOpt(f optFlag, state bool) {
-	if state {
-		t.optFlag |= f
+	if w, h := int(size.W), int(size.H); float32(w) != size.W || float32(h) != size.H {
+		return 0, 0, data.ErrBadParameter
 	} else {
-		t.optFlag ^= f
+		return w, h, nil
 	}
 }
 
-func (t *Table) doReadHeader(row []string) ([]int, error) {
-	order := make([]int, 0, len(row))
-	for _, field := range row {
-		fieldName := strings.TrimSpace(field)
-		j, err := t.appendField(fieldName)
-		if errors.Is(err, data.ErrDuplicateEntry) {
-			// Ignore error
-		} else if err != nil {
-			return nil, err
-		}
-		order = append(order, j)
-	}
-	return order, nil
+// readHeader adds columns to the table and returns the order of the columns
+// for subsequent reads
+func (t *Table) readHeader(row []string) []int {
+	return t.header.set(row)
 }
 
-// doReadRow extends the width and height of the table before
-// creating a row and appending to table
-func (t *Table) doReadRow(order []int, row []string) error {
-	width := len(row)
-	for _, i := range order {
-		if i+1 > width {
-			width = i + 1
-		}
-	}
-	if order != nil && len(order) != len(row) {
+// readRow reorders the row in the correct order and uses callback
+// to either stream the row out or store in the table
+func (t *Table) readRow(i int, order []int, row []string, fn funcRowReader) error {
+	// Check incoming parameters
+	if fn == nil {
+		return data.ErrInternalAppError
+	} else if len(order) != 0 && len(order) != len(row) {
 		return data.ErrInternalAppError
 	}
-
-	// Set header width
-	t.setWidth(uint(width))
-
-	// Create a row with "width" capacity
-	r := NewRow(uint(width))
-
-	// Set contents of row
-	for i, cell := range row {
-		if order == nil {
-			r.set(uint(i), cell, t.valueForString(cell))
-		} else {
-			r.set(uint(order[i]), cell, t.valueForString(cell))
+	// Extend header width as necessary
+	if order == nil {
+		t.header.w = maxInt(t.header.w, len(row))
+	}
+	// Re-order row as necessary
+	if len(order) == 0 {
+		return fn(i, row)
+	} else {
+		r := make([]string, t.header.w)
+		for i, value := range row {
+			r[order[i]] = value
 		}
-	}
-
-	// Append row
-	t.appendRow(r)
-
-	// Return success
-	return nil
-}
-
-func (t *Table) appendRow(r *row) {
-	t.r = append(t.r, r)
-	t.h = uint(len(t.r))
-	t.types.scan(r)
-}
-
-// setHeight sets the absolute height of the table, adding and
-// removing rows as necessary
-func (t *Table) setHeight(height uint) {
-	l := len(t.r)
-	if l > int(height) {
-		t.r = t.r[:height]
-	}
-	if l == int(height) {
-		return
-	}
-	for len(t.r) < int(height) {
-		t.r = append(t.r, NewRow(t.w))
+		return fn(i, r)
 	}
 }
 
-// setWidth sets the absolute width of the table. adding and
-// removing columns as necessary
-func (t *Table) setWidth(width uint) {
-	if len(t.header.order) < int(width) {
-		t.header.setWidth(width)
+func maxInt(a, b int) int {
+	if a > b {
+		return a
+	} else {
+		return b
 	}
-	t.w = width
-}
-
-// sizeFor returns integer width and height from size
-func sizeFor(size data.Size) (uint, uint) {
-	return uint(math.Abs(float64(size.W))), uint(math.Abs(float64(size.H)))
-}
-
-/////////////////////////////////////////////////////////////////////
-// PRIVATE METHODS - PARSE VALUES
-
-// valueForString returns interpreted value from a string
-func (t *Table) valueForString(v string) interface{} {
-	// Check for nil values
-	if t.hasOpt(optNil) && nilValueForString(v) {
-		return nil
-	}
-	// Check for uint values
-	if t.hasOpt(optUint) {
-		if v_, exists := uintValueForString(v); exists {
-			return v_
-		}
-	}
-	// Check for int values
-	if t.hasOpt(optInt) {
-		if v_, exists := intValueForString(v); exists {
-			return v_
-		}
-	}
-	// Check for float values
-	if t.hasOpt(optFloat) {
-		if v_, exists := floatValueForString(v); exists {
-			return v_
-		}
-	}
-	// Check for datetime
-	if t.hasOpt(optDatetime) {
-		if v_, exists := datetimeValueForString(v, t.tz); exists {
-			return v_
-		}
-	}
-	// Check for date values
-	if t.hasOpt(optDate) {
-		if v_, exists := dateValueForString(v, t.tz); exists {
-			return v_
-		}
-	}
-	// Check for duration values
-	if t.hasOpt(optDuration) {
-		if v_, exists := durationValueForString(v); exists {
-			return v_.Truncate(t.d)
-		}
-		if v_, exists := intValueForString(v); exists {
-			return time.Duration(v_) * t.d
-		}
-	}
-	// Check for bool values
-	if t.hasOpt(optBool) {
-		if v_, exists := boolValueForString(v); exists {
-			return v_
-		}
-	}
-	// Return string by default
-	return v
-}
-
-func nilValueForString(v string) bool {
-	return v == "" || strings.TrimSpace(v) == ""
-}
-
-func floatValueForString(v string) (float64, bool) {
-	f, err := strconv.ParseFloat(v, 64)
-	return f, err == nil
-}
-
-func uintValueForString(v string) (uint64, bool) {
-	u, err := strconv.ParseUint(v, 0, 64)
-	return u, err == nil
-}
-
-func intValueForString(v string) (int64, bool) {
-	i, err := strconv.ParseInt(v, 0, 64)
-	return i, err == nil
-}
-
-func boolValueForString(v string) (bool, bool) {
-	b, err := strconv.ParseBool(v)
-	return b, err == nil
-}
-
-func durationValueForString(v string) (time.Duration, bool) {
-	d, err := time.ParseDuration(v)
-	return d, err == nil
-}
-
-func datetimeValueForString(v string, tz *time.Location) (time.Time, bool) {
-	if t, err := time.ParseInLocation(time.RFC3339, v, tz); err == nil {
-		return t, true
-	}
-	if t, err := time.ParseInLocation(time.UnixDate, v, tz); err == nil {
-		return t, true
-	}
-	if t, err := time.ParseInLocation(time.RFC822, v, tz); err == nil {
-		return t, true
-	}
-	if t, err := time.ParseInLocation("2006-01-02 15:04:05", v, tz); err == nil {
-		return t, true
-	}
-	if t, err := time.ParseInLocation("2006-01-02 15:04", v, tz); err == nil {
-		return t, true
-	}
-	return time.Time{}, false
-}
-
-func dateValueForString(v string, tz *time.Location) (time.Time, bool) {
-	if t, err := time.ParseInLocation("2006-01-02", v, tz); err == nil {
-		return t, true
-	}
-	if t, err := time.ParseInLocation("2006/01/02", v, tz); err == nil {
-		return t, true
-	}
-	if t, err := time.ParseInLocation("02/01/2006", v, tz); err == nil {
-		return t, true
-	}
-	if t, err := time.ParseInLocation("02-01-2006", v, tz); err == nil {
-		return t, true
-	}
-	if t, err := time.ParseInLocation("Jan 2 2006", v, tz); err == nil {
-		return t, true
-	}
-	if t, err := time.ParseInLocation("2 Jan 2006", v, tz); err == nil {
-		return t, true
-	}
-	if t, err := time.ParseInLocation("Jan 2 06", v, tz); err == nil {
-		return t, true
-	}
-	if t, err := time.ParseInLocation("2 Jan 06", v, tz); err == nil {
-		return t, true
-	}
-	return time.Time{}, false
 }

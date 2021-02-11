@@ -2,105 +2,77 @@ package table
 
 import (
 	"fmt"
-
-	"github.com/djthorpe/data"
+	"strings"
 )
 
 /////////////////////////////////////////////////////////////////////
 // TYPES
 
 type header struct {
-	*types
-	fields map[string]*field
-	order  []*field
-}
-
-type field struct {
-	name string
-	i    int
+	w int
+	f map[string]*col
+	i map[int]*col
 }
 
 /////////////////////////////////////////////////////////////////////
 // LIFECYCLE
 
-func NewHeader(cap uint) *header {
+func NewHeader(cap int) *header {
 	h := new(header)
-	h.types = NewTypes(cap)
-	h.fields = make(map[string]*field, int(cap))
-	h.order = make([]*field, 0, int(cap))
+	h.w = cap
+	h.f = make(map[string]*col, cap)
+	h.i = make(map[int]*col, cap)
 	return h
-}
-
-func NewField(name string, i int) *field {
-	return &field{
-		name, i,
-	}
 }
 
 /////////////////////////////////////////////////////////////////////
 // HEADER METHODS
 
-func (h *header) hasField(key string) (int, bool) {
-	if f, exists := h.fields[key]; exists {
-		return f.i, exists
+func (h *header) set(row []string) []int {
+	order := make([]int, len(row))
+	for i, value := range row {
+		order[i] = h.append(value)
+	}
+	return order
+}
+
+func (h *header) append(value string) int {
+	f := NewCol(h.w, value)
+	if f_, exists := h.f[f.key]; exists == false {
+		h.f[f.key], h.i[f.i] = f, f
+		h.w++
+		return f.i
 	} else {
-		return -1, exists
+		return f_.i
 	}
 }
 
-func (h *header) appendField(field string) (int, error) {
-	l := len(h.order)
-	f := NewField(field, l)
-	k := f.Key()
-	if i, exists := h.hasField(k); exists {
-		return i, data.ErrDuplicateEntry
-	} else {
-		h.fields[k] = f
-		h.order = append(h.order, f)
-	}
-
-	// Return success
-	return l, nil
-}
-
-func (h *header) setWidth(width uint) {
-	// If width is over, remove fields
-	l := len(h.order)
-	if l > int(width) {
-		for i := int(width); i < l; i++ {
-			k := h.order[i].Key()
-			delete(h.fields, k)
+func (h *header) row() []string {
+	result := make([]string, h.w)
+	for i := range result {
+		if f, exists := h.i[i]; exists {
+			result[i] = f.value
+		} else {
+			result[i] = fmt.Sprintf("Col_%02d", i)
 		}
-		h.order = h.order[:width]
-	}
-	// If width is identical, return
-	if len(h.order) == int(width) {
-		return
-	}
-	// We need to add rows on
-	for len(h.order) < int(width) {
-		k := fmt.Sprintf("Col_%02d", len(h.order))
-		h.appendField(k)
-	}
-}
-
-func (h *header) stringsForWidth(width uint) []string {
-	result := make([]string, width)
-	for i, f := range h.order {
-		if i >= int(width) {
-			break
-		}
-		result[i] = f.name
 	}
 	return result
-
 }
 
-/////////////////////////////////////////////////////////////////////
-// FIELD METHODS
+func (h *header) col(i int) *col {
+	if c, exists := h.i[i]; exists {
+		return c
+	} else {
+		return nil
+	}
+}
 
-func (f *field) Key() string {
-	return f.name
+func (h *header) validate(row []interface{}) {
+	for i, v := range row {
+		if c, exists := h.i[i]; exists {
+			c.validate(v)
+		}
+	}
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -108,12 +80,6 @@ func (f *field) Key() string {
 
 func (h *header) String() string {
 	str := "<h"
-	str += fmt.Sprint(" ", h.order)
-	return str + ">"
-}
-
-func (f *field) String() string {
-	str := "<field"
-	str += fmt.Sprintf(" name=%q key=%q", f.name, f.Key())
+	str += " " + strings.Join(h.row(), ",")
 	return str + ">"
 }

@@ -1,59 +1,50 @@
-# goapp
+# Data Transformation
 
-The repository is a template for a Go application. In order to
-create a new application from it, follow the following steps.
+This repository contains various data extraction, transformation
+processing and visualization tools. Currently it contains the 
+following:
 
-You'll want to download the Go compiler and libraries from
-`https://golang.org/dl/` first.
+  * `data.Table` provides you with a way to ingest, transform
+    and process data tables in comma-separated value format.
 
-Navigate to https://github.com/djthorpe/goapp and click on
-"Use this template". It will then allow you to name your 
-repository.
+## Tables
 
+You can ingest tables from files and other sources by creating
+a table object and then reading using the `io.Reader` class. For
+example:
 
-Clone the repository to your local computer and edit it.
-You'll want to type the following command to update the
-`go.mod` file, be sure to change anything starting with __My__:
+```go
+package main
 
-```bash
-cd MyRepository
-go mod init github.com/MyUsername/MyRepository
+import (
+	"os"
+	"github.com/djthorpe/data"
+	"github.com/djthorpe/data/pkg/table"
+)
+
+func main() {
+	t := table.NewTable(data.ZeroSize)
+
+  // Read CSV table
+  r, err := os.Open(os.Args[1])
+  if err != nil {
+    panic(err)      
+	}
+	defer r.Close()
+  if err := t.Read(r,OptHeader()); err != nil {
+    panic(err)      
+  }
+
+	// Write Ascii table
+	if err := t.Write(os.Stdout, t.OptHeader(), t.OptAscii(80, data.BorderLines)); err != nil {
+    panic(err)
+	}
+}
 ```
 
-The following folders within the repository should be used:
+### Table reading formats and options
 
-  * `cmd/` for command-line binaries that need to be built;
-  * `pkg/` for packages which form part of any system.
+### Table writing formats and options
 
-You include packages into your binaries as per the example
-in this package (which you can delete).
-
-Finally, replace this `README.md` file with something more
-appropriate for your repository.
-
-## Using a Makefile
-
-The `Makefile` example assumes you are using GNU Make in
-order to run tests and compile command-line binaries:
-
-  * `make` with no arguments builds each command and puts
-    the binary into the `build` folder;
-  * `make test` will run tests on the packages;
-  * `make clean` will return the repository to clean state
-    with no artifacts.
-
-You don't need to use a Makefile as part of your toolchain,
-however.
-
-## Future enhancements
-
-There are some possible future enhancements to this template
-repository:
-
-  * Add cross compilation building to other platforms;
-  * Integrate CI pipelines like CircleCI and Github Actions;
-  * Add packaging and releasing steps.
-
-Let me know if these steps are useful for you.
-
+### Transforming data values
 
