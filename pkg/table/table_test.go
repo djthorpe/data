@@ -8,7 +8,7 @@ import (
 	"time"
 
 	data "github.com/djthorpe/data"
-	table "github.com/djthorpe/data/pkg/table2"
+	table "github.com/djthorpe/data/pkg/table"
 )
 
 const (
@@ -163,6 +163,18 @@ func Test_Table_008(t *testing.T) {
 	c.Sort(compareFunc(c))
 	// Write sorted data
 	if err := c.Write(os.Stdout, c.OptHeader(), c.OptAscii(0, "")); err != nil {
+		t.Error(err)
+	}
+}
+
+func Test_Table_009(t *testing.T) {
+	// Read table with existing columns and rows
+	c := table.NewTable(data.ZeroSize)
+	c.Append(0, 0, 0)
+	c.Append(1)
+	c.Append(2, 2, 2, 2, 2)
+	// Write out
+	if err := c.Write(os.Stdout, c.OptAscii(0, "")); err != nil {
 		t.Error(err)
 	}
 }

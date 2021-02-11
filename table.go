@@ -50,8 +50,11 @@ type Table interface {
 	// Write data with table options
 	Write(io.Writer, ...TableOpt) error
 
-	// Stream data with table options
-	Stream(io.Writer, io.Reader, ...TableOpt) error
+	// Append a row to the table
+	Append(...interface{})
+
+	// Len returns the number of rows
+	Len() int
 
 	// Col returns column information for a zero-indexed table column
 	Col(int) TableCol
@@ -68,7 +71,7 @@ type Table interface {
 	// ForMap and ForArray
 	OptHeader() TableOpt
 
-	// OptTransform used on Read or Write transforms a value.
+	// OptTransform used on Read, or Write transforms a value.
 	// Several transform functions can be used in series on a value.
 	// Transformation functions are called in series until nil or
 	// error returned. If ErrSkipTransform is returned, the next

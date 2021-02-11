@@ -177,6 +177,13 @@ func (t *Table) Swap(i, j int) {
 	t.r[i], t.r[j] = t.r[j], t.r[i]
 }
 
+func (t *Table) Append(row ...interface{}) {
+	// Extend header width as necessary
+	t.header.w = maxInt(t.header.w, len(row))
+	// Append the row
+	t.r = append(t.r, NewRow(row))
+}
+
 /////////////////////////////////////////////////////////////////////
 // STRINGIFY
 
