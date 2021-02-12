@@ -1,15 +1,12 @@
 # Data Transformation
 
-This repository contains various data extraction, transformation processing and visualization tools. Currently it contains the 
-following:
+This repository contains various data extraction, transformation processing and visualization tools. Currently it contains the following:
 
-  * `data.Table` provides you with a way to ingest, transform and process data tables in comma-separated value format.
+  * `data.Table` provides you with a way to ingest, transform and process data tables in comma-separated value format and output in CSV, ASCII and SQL formats.
 
 ## Tables
 
-You can ingest tables from files and other sources by creating
-a table object and then reading using the `io.Reader` class. For
-example:
+You can ingest tables from files and other sources by creating a table object and then reading using the `io.Reader` class. For example:
 
 ```go
 package main
@@ -52,13 +49,11 @@ Internally, cells within the table are stored in "native" format, a default tran
   * `data.Bool` when the text represents a boolean value;
   * `data.Other` when the native value is not represented otherwise.
 
-	
 If the data cannot be represented, you can define your own transformation functions or it will be represented as a text (`data.String`) value otherwise. See below for more information about custom data transformation.
 
 ### Creating tables
 
-To create a table, use the `NewTable` method. You can define
-column headings when creating a table:
+To create a table, use the `NewTable` method. You can define column headings when creating a table:
 
 ```
 package main
@@ -80,10 +75,7 @@ func main() {
 }
 ```
 
-You can append native values to the table, which may extend the width of the table as well as the length. To
-sort the table, provide a row comparison function which
-accepts two arguments `a` and `b` and returns `true` if
-`a < b`.
+You can append native values to the table, which may extend the width of the table as well as the length. To sort the table, provide a row comparison function which accepts two arguments `a` and `b` and returns `true` if `a < b`.
 
 ### Table reading formats and options
 
@@ -122,13 +114,9 @@ type Table interface {
 The following table options are relevant for writing:
 
   * `table.OptHeader()` indicates the header of the table should be output first;
-  * `table.OptCsv(rune)` sets the writing format to CSV and sets the delimiter used for separating values on a row. When argument
-  is zero, a comma is used;
-  * `table.OptAscii(int,string)` sets the writing format to ASCII
-  and sets the maximum width of the table in characters. When the
-  width is zero, the table width is unbounded. The second argument
-  can be set to `data.BorderDefault` for ASCII border characters
-  or `data.BorderLines` for UTF8 border characters.
+  * `table.OptCsv(rune)` sets the writing format to CSV and sets the delimiter used for separating values on a row. When argument is zero, a comma is used;
+  * `table.OptAscii(int,string)` sets the writing format to ASCII and sets the maximum width of the table in characters. When the width is zero, the table width is unbounded. The second argument can be set to `data.BorderDefault` for ASCII border characters or `data.BorderLines` for UTF8 border characters.
+  * `table.OptSql(string)` sets the writing format to SQL with the provided argument as the table name. When using the `table.OptHeader` option, the CREATE TABLE statement is included. Currently the idea is to be compatible with __sqlite__ rather than other SQL servers.
   * `table.OptTransform(...TransformFunc)` sets one or more value transformation functions, which convert a native value into text. Any transform function can return `data.ErrSkipTransform` in order to move onto the next transform function.
 
 ### Table introspection
