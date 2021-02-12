@@ -2,6 +2,7 @@ package table_test
 
 import (
 	"fmt"
+	"net"
 	"os"
 	"strings"
 	"testing"
@@ -15,6 +16,7 @@ const (
 	TABLE_A = "0,1,2,3\n1,2,3,\n2,3,,\n,,3,4\n"
 	TABLE_B = "1,0\n1,2\n1,\n,2\n"
 	TABLE_C = "2020-10-01,1h\n1/1/2008,2h\n30 Mar 2006,3h30m\n6 Oct 06,40ns\nAug 14 1908,5.5"
+	TABLE_D = "8.8.8.8\n127.0.0.1\n192.168.0.1\n\"\"\n"
 )
 
 const (
@@ -379,6 +381,41 @@ func Test_Table_011(t *testing.T) {
 	// Output table with width 40 and nice lines
 	b := new(strings.Builder)
 	if err := c.Write(b, c.OptHeader(), c.OptAscii(40, data.BorderLines)); err != nil {
+		t.Error(err)
+	} else {
+		t.Log("\n" + b.String())
+	}
+}
+func Test_Table_012(t *testing.T) {
+	// Transform IP addresses
+	transformAddrIn := func(t data.Table) data.TransformFunc {
+		return func(i, j int, v interface{}) (interface{}, error) {
+			if ip := net.ParseIP(v.(string)); ip == nil {
+				return nil, data.ErrSkipTransform
+			} else {
+				return ip, nil
+			}
+		}
+	}
+	transformAddrOut := func(t data.Table) data.TransformFunc {
+		return func(i, j int, v interface{}) (interface{}, error) {
+			if v_, ok := v.(net.IP); ok {
+				return fmt.Sprint("[", v_, "]"), nil
+			} else {
+				return nil, data.ErrSkipTransform
+			}
+		}
+	}
+
+	// Create an empty table
+	c := table.NewTable("IP Address")
+	if err := c.Read(strings.NewReader(TABLE_D), c.OptTransform(transformAddrIn(c))); err != nil {
+		t.Error(err)
+	}
+
+	// Output table, adding [] around IP address
+	b := new(strings.Builder)
+	if err := c.Write(b, c.OptHeader(), c.OptTransform(transformAddrOut(c)), c.OptAscii(0, data.BorderLines)); err != nil {
 		t.Error(err)
 	} else {
 		t.Log("\n" + b.String())
