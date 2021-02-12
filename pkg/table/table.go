@@ -133,22 +133,6 @@ func (t *Table) Write(w io.Writer, opts ...data.TableOpt) error {
 	}
 }
 
-// Stream data with table options
-/*
-func (t *Table) Stream(w io.Writer, r io.Reader, opts ...data.TableOpt) error {
-	// Set option flags
-	t.applyOpt(opts)
-
-	// Return nil if no width or height
-	if len(t.r) == 0 || t.header.w == 0 {
-		return nil
-	}
-
-	// Not yet implemented
-	return nil
-}
-*/
-
 // Col returns column information for a zero-indexed table column
 func (t *Table) Col(i int) data.TableCol {
 	c := t.header.col(i)
@@ -158,11 +142,10 @@ func (t *Table) Col(i int) data.TableCol {
 	// Summarize data for column
 	c.group(nil)
 	for _, row := range t.r {
-		if len(row.v) < c.i || row.v[c.i] == nil {
+		if c.i >= len(row.v) || row.v[c.i] == nil {
 			continue
-		} else {
-			c.group(row.v[c.i])
 		}
+		c.group(row.v[c.i])
 	}
 
 	// Return column
