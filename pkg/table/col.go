@@ -145,7 +145,11 @@ func (c *col) asciiWidth() int {
 
 func (c *col) Fmt() string {
 	if c.fmt == "" {
-		c.fmt = fmt.Sprint("%-", c.asciiWidth(), "s")
+		if t, _ := c.types.Type(); t == data.String {
+			c.fmt = fmt.Sprint("%-", c.asciiWidth(), "s")
+		} else {
+			c.fmt = fmt.Sprint("%", c.asciiWidth(), "s")
+		}
 	}
 	return c.fmt
 }

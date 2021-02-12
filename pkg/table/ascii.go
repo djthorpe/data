@@ -1,10 +1,10 @@
 package table
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"strings"
+	"unicode/utf8"
 )
 
 const (
@@ -12,7 +12,7 @@ const (
 	borderN
 	borderNE
 	borderW
-	borderO
+	borderC
 	borderE
 	borderSW
 	borderS
@@ -60,49 +60,61 @@ func (t *Table) writeAscii(w io.Writer, fn funcRowWriter) error {
 	return nil
 }
 
-func (t *Table) asciiTop(w io.Writer, cols []*col) error {
-	row := make([]string, len(cols))
-	for i, col := range cols {
-		row[i] = strings.Repeat("-", col.asciiWidth())
-	}
-	return t.asciiLine([]byte("+-"), []byte("-+-"), []byte("-+"), w, cols, row)
-}
-
 func (t *Table) asciiRow(w io.Writer, cols []*col, row []string) error {
-	return t.asciiLine([]byte("| "), []byte(" | "), []byte(" |"), w, cols, row)
+	return t.asciiLine(borderV, borderV, borderV, w, cols, row)
 }
 
 func (t *Table) asciiHeader(w io.Writer, cols []*col, row []string) error {
-	if err := t.asciiLine([]byte("| "), []byte(" | "), []byte(" |"), w, cols, row); err != nil {
+	if err := t.asciiLine(borderV, borderV, borderV, w, cols, row); err != nil {
 		return err
 	}
-	return t.asciiTop(w, cols)
+	return t.asciiDivider(borderW, borderC, borderE, w, cols)
+}
+
+func (t *Table) asciiTop(w io.Writer, cols []*col) error {
+	return t.asciiDivider(borderNW, borderN, borderNE, w, cols)
 }
 
 func (t *Table) asciiBottom(w io.Writer, cols []*col) error {
-	row := make([]string, len(cols))
-	for i, col := range cols {
-		row[i] = strings.Repeat("-", col.asciiWidth())
-	}
-	return t.asciiLine([]byte("+-"), []byte("-+-"), []byte("-+"), w, cols, row)
+	return t.asciiDivider(borderSW, borderS, borderSE, w, cols)
 }
 
-func (t *Table) asciiLine(l, m, r []byte, w io.Writer, cols []*col, row []string) error {
-	row_ := make([][]byte, len(cols))
+func (t *Table) asciiDivider(l, m, r int, w io.Writer, cols []*col) error {
+	row := make([]string, len(cols))
+	fill := t.asciiChar(borderH)
 	for i, col := range cols {
-		row_[i] = []byte(fmt.Sprintf(col.Fmt(), row[i])[:col.asciiWidth()])
+		row[i] = strings.Repeat(string(fill), col.asciiWidth())
 	}
-	if _, err := w.Write(l); err != nil {
-		return err
-	}
-	if _, err := w.Write(bytes.Join(row_, m)); err != nil {
-		return err
-	}
-	if _, err := w.Write(r); err != nil {
-		return err
-	}
-	if _, err := w.Write([]byte("\n")); err != nil {
-		return err
+	return t.asciiLine(l, m, r, w, cols, row)
+}
+
+func (t *Table) asciiLine(l, m, r int, w io.Writer, cols []*col, row []string) error {
+	for i, v := range row {
+		col := cols[i]
+		if utf8.RuneCountInString(v) != col.asciiWidth() {
+			v = fmt.Sprintf(col.Fmt(), v)[:col.asciiWidth()]
+		}
+		left := t.asciiChar(m)
+		right := []byte{}
+		if i == 0 {
+			left = t.asciiChar(l)
+		}
+		if i == len(row)-1 {
+			right = append(t.asciiChar(r), byte('\n'))
+		}
+		if _, err := w.Write(left); err != nil {
+			return err
+		} else if _, err := w.Write([]byte(v)); err != nil {
+			return err
+		} else if _, err := w.Write(right); err != nil {
+			return err
+		}
 	}
 	return nil
+}
+
+func (t *Table) asciiChar(i int) []byte {
+	// Rune for character
+	r := t.opts.border[i]
+	return []byte(string(r))
 }

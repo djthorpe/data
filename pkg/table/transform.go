@@ -32,6 +32,7 @@ var (
 	}
 	defaultOutTransforms = []transformOutFunc{
 		transformOutNil,
+		transformOutFloat,
 		transformOutDuration,
 		transformOutDate,
 	}
@@ -160,6 +161,26 @@ func transformInFloat(t *Table, str string) (interface{}, error) {
 		return v, nil
 	} else {
 		return nil, data.ErrSkipTransform
+	}
+}
+
+func transformOutFloat(t *Table, v interface{}) (string, error) {
+	if t.hasOpt(optFloat) == false {
+		return "", data.ErrSkipTransform
+	}
+	var f float64
+	switch v_ := v.(type) {
+	case float32:
+		f = float64(v_)
+	case float64:
+		f = v_
+	default:
+		return "", data.ErrSkipTransform
+	}
+	if float64(int64(f)) == f {
+		return fmt.Sprintf("%.0f", f), nil
+	} else {
+		return fmt.Sprintf("%f", f), nil
 	}
 }
 

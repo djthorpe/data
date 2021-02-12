@@ -247,7 +247,7 @@ func Test_Table_006(t *testing.T) {
 
 	// Output table, with float transform
 	b := new(strings.Builder)
-	if err := c.Write(b, c.OptHeader(), c.OptAscii(0, data.BorderLines), c.OptTransform(transformFloat(c))); err != nil {
+	if err := c.Write(b, c.OptHeader(), c.OptAscii(0, ""), c.OptTransform(transformFloat(c))); err != nil {
 		t.Error(err)
 	} else {
 		t.Log(b.String())
@@ -312,9 +312,15 @@ func Test_Table_008(t *testing.T) {
 }
 
 func Test_Table_009(t *testing.T) {
+	// Call a row iterator, reject any rows where there is a <nil>
+	// leaving only one row
 	rowIterator := func(c data.Table) data.IteratorFunc {
 		return func(i int, r []interface{}) error {
-			t.Log(i, "=>", r)
+			for _, v := range r {
+				if v == nil {
+					return data.ErrSkipTransform
+				}
+			}
 			return nil
 		}
 	}
@@ -322,19 +328,14 @@ func Test_Table_009(t *testing.T) {
 	c := table.NewTable()
 	if err := c.Read(strings.NewReader(TABLE_A), c.OptType(data.Duration|data.Nil), c.OptRowIterator(rowIterator(c))); err != nil {
 		t.Error(err)
-	} else if err := c.Write(os.Stdout, c.OptAscii(0, "")); err != nil {
-		t.Error(err)
+	}
+	// There should only be one remaining row
+	if c.Len() != 1 {
+		t.Error("Unexpected number of rows, expected 1, got", c.Len())
 	}
 }
 
 func Test_Table_010(t *testing.T) {
-	rowIterator := func(c data.Table) data.IteratorFunc {
-		return func(i int, r []interface{}) error {
-			t.Log(i, "=>", r)
-			return nil
-		}
-	}
-
 	compareFunc := func(c data.Table) data.CompareFunc {
 		return func(a, b []interface{}) bool {
 			a_ := a[0].(time.Time)
@@ -345,12 +346,41 @@ func Test_Table_010(t *testing.T) {
 
 	// Read table with existing columns and rows
 	c := table.NewTable()
-	if err := c.Read(strings.NewReader(TABLE_C), c.OptType(data.DefaultTypes), c.OptRowIterator(rowIterator(c))); err != nil {
+	if err := c.Read(strings.NewReader(TABLE_C)); err != nil {
 		t.Error(err)
 	}
+
+	// Sort table by column zero, which is a date
 	c.Sort(compareFunc(c))
-	// Write sorted data
-	if err := c.Write(os.Stdout, c.OptHeader(), c.OptAscii(0, "")); err != nil {
+
+	// Ensure rows are in the right order
+	var d time.Time
+	for i := 0; i < c.Len(); i++ {
+		e := c.Row(i)[0].(time.Time)
+		if e.Before(d) {
+			t.Error("Unexpected order for", e, "expected to be after", d)
+		}
+		d = e
+	}
+}
+
+func Test_Table_011(t *testing.T) {
+	// Read DATASET_A
+	c := table.NewTable()
+	fh, err := os.Open(DATASET_A)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer fh.Close()
+	if err := c.Read(fh, c.OptHeader(), c.OptType(data.DefaultTypes|data.Nil)); err != nil {
 		t.Error(err)
+	}
+
+	// Output table with width 40 and nice lines
+	b := new(strings.Builder)
+	if err := c.Write(b, c.OptHeader(), c.OptAscii(40, data.BorderLines)); err != nil {
+		t.Error(err)
+	} else {
+		t.Log("\n" + b.String())
 	}
 }
