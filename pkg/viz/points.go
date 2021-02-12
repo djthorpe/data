@@ -2,6 +2,7 @@ package viz
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/djthorpe/data"
 )
@@ -10,8 +11,9 @@ import (
 // TYPES
 
 type points struct {
-	series string
-	p      []data.Point
+	name     string
+	v        []data.Point
+	min, max data.Point
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -21,41 +23,57 @@ type points struct {
 // LIFECYCLE
 
 // NewPoints returns an empty array of points
-func NewPoints(series string) data.Points {
+func NewPoints(name string) data.Points {
 	this := new(points)
-	this.series = series
+	this.name = name
+	this.min, this.max = data.NilPoint, data.NilPoint
 	return this
 }
 
 /////////////////////////////////////////////////////////////////////
 // METHODS
 
-func (p *points) Series() string {
-	return p.series
+func (p *points) Name() string {
+	return p.name
 }
 
-func (p *points) Read(t data.Table, fn data.PointIteratorFunc) error {
-	if t == nil || fn == nil {
-		return data.ErrBadParameter
+func (p *points) SetName(name string) {
+	p.name = name
+}
+
+func (p *points) Len() int {
+	return len(p.v)
+}
+
+func (p *points) Min() data.Point {
+	return p.min
+}
+
+func (p *points) Max() data.Point {
+	return p.max
+}
+
+func (p *points) Append(point data.Point) {
+	// Check min and max
+	if isNaN(point.X) == false {
+		if isNaN(p.min.X) || p.min.X > point.X {
+			p.min.X = point.X
+		}
+		if isNaN(p.max.X) || p.max.X < point.X {
+			p.max.X = point.X
+		}
 	}
-	for i := 0; i < t.Len(); i++ {
-		if pt, err := fn(i, t.Row(i)); err == data.ErrSkipTransform {
-			continue
-		} else if err != nil {
-			return err
-		} else {
-			p.p = append(p.p, pt)
+	if isNaN(point.Y) == false {
+		if isNaN(p.min.Y) || p.min.Y > point.Y {
+			p.min.Y = point.Y
+		}
+		if isNaN(p.max.Y) || p.max.Y < point.Y {
+			p.max.Y = point.Y
 		}
 	}
 
-	// Return success
-	return nil
-}
-
-func (p *points) WritePath(c data.Canvas) data.CanvasGroup {
-	return c.Group(
-		c.Path(p.p),
-	)
+	// Append value
+	p.v = append(p.v, point)
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -63,9 +81,36 @@ func (p *points) WritePath(c data.Canvas) data.CanvasGroup {
 
 func (p *points) String() string {
 	str := "<points"
-	str += fmt.Sprintf(" series=%q", p.Series())
-	for _, pt := range p.p {
-		str += fmt.Sprint(" <", pt.X, ",", pt.Y, ">")
+	str += fmt.Sprintf(" name=%q", p.Name())
+	if min := p.Min(); min.IsNil() == false {
+		str += fmt.Sprintf(" min=%v", min)
+	}
+	if max := p.Max(); max.IsNil() == false {
+		str += fmt.Sprintf(" max=%v", max)
+	}
+	if len(p.v) > 0 {
+		str += " <"
+		for _, v := range p.v {
+			str += fmt.Sprintf("%v,", v)
+		}
+		str = strings.TrimSuffix(str, ",") + ">"
 	}
 	return str + ">"
 }
+
+/////////////////////////////////////////////////////////////////////
+// PRIVATE METHODS
+
+func isNaN(f float32) bool {
+	return f != f
+}
+
+/*
+
+func (p *points) WritePath(c data.Canvas) data.CanvasGroup {
+	return c.Group(
+		c.Path(p.p),
+	)
+}
+
+*/

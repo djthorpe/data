@@ -3,6 +3,7 @@ package data
 import (
 	"fmt"
 	"io"
+	"math"
 )
 
 /////////////////////////////////////////////////////////////////////
@@ -45,6 +46,7 @@ type CanvasGroup interface {
 	CanvasElement
 	Desc(string) CanvasGroup
 	Group(...CanvasElement) CanvasGroup
+	Scale(Point, Point) CanvasGroup
 }
 
 type CanvasElement interface {
@@ -72,6 +74,7 @@ const (
 var (
 	ZeroSize  = Size{0, 0}
 	ZeroPoint = Point{0, 0}
+	NilPoint  = Point{float32(math.NaN()), float32(math.NaN())}
 )
 
 var (
@@ -112,4 +115,11 @@ func (u Unit) String() string {
 	default:
 		return ""
 	}
+}
+
+/////////////////////////////////////////////////////////////////////
+// FUNCTIONS
+
+func (p Point) IsNil() bool {
+	return math.IsNaN(float64(p.X)) || math.IsNaN(float64(p.Y))
 }
