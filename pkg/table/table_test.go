@@ -12,9 +12,9 @@ import (
 )
 
 const (
-	TABLE_A = "0,1\n1,2\n1,\n,2\n"
+	TABLE_A = "0,1,2,3\n1,2,3,\n2,3,,\n,,3,4\n"
 	TABLE_B = "1,0\n1,2\n1,\n,2\n"
-	TABLE_C = "2020-10-01\n1/1/2008\n30 Mar 2006\n6 Oct 06\nAug 14 1908"
+	TABLE_C = "2020-10-01,1h\n1/1/2008,2h\n30 Mar 2006,3h30m\n6 Oct 06,40ns\nAug 14 1908,5.5"
 )
 
 const (
@@ -23,79 +23,219 @@ const (
 )
 
 func Test_Table_001(t *testing.T) {
-	if c := table.NewTable(data.ZeroSize); c == nil {
-		t.Error("Expected Non-nil return from NewTable")
+	// Create an empty table
+	c := table.NewTable()
+	if c == nil {
+		t.Fatal("Expected Non-nil return from NewTable")
+	} else if c.Len() != 0 {
+		t.Error("Expected empty table")
 	}
-	if c := table.NewTable(data.Size{-1, 0}); c != nil {
-		t.Error("Expected Nil return from NewTable")
+
+	// Append an empty row, then one with four values
+	c.Append()
+	c.Append(1, 2, 3, 4)
+
+	// Check table
+	if c.Len() != 2 {
+		t.Error("Expected table length to be two")
 	}
-	if c := table.NewTable(data.Size{0, -1}); c != nil {
-		t.Error("Expected Nil return from NewTable")
+	for i := 0; i < 4; i++ {
+		if col := c.Col(i); col == nil {
+			t.Error("Unexpected non-nil column")
+		} else if col.Type()&data.Int == 0 {
+			t.Error("Unexpected int type for column, got <", col.Type(), ">")
+		} else if col.Type()&data.Nil == 0 {
+			t.Error("Unexpected nil type for column, got <", col.Type(), ">")
+		} else {
+			t.Log("col", i, "=", col)
+		}
 	}
-	if c := table.NewTable(data.Size{1.1, 1}); c != nil {
-		t.Error("Expected Nil return from NewTable")
+	for i := 0; i < c.Len(); i++ {
+		row := c.Row(i)
+		if len(row) != 4 {
+			t.Error("Unexpected row width")
+		}
 	}
-	if c := table.NewTable(data.Size{1.999999, 1}); c != nil {
-		t.Error("Expected Nil return from NewTable")
-	}
-	if c := table.NewTable(data.Size{0, 1.99999}); c != nil {
-		t.Error("Expected Nil return from NewTable")
-	}
-	if c := table.NewTable(data.Size{0, 2}); c == nil {
-		t.Error("Expected Non-nil return from NewTable")
-	}
-	if c := table.NewTable(data.Size{2, 2}); c == nil {
-		t.Error("Expected Non-nil return from NewTable")
+
+	// Output table
+	b := new(strings.Builder)
+	if err := c.Write(b, c.OptHeader(), c.OptAscii(0, "")); err != nil {
+		t.Error(err)
+	} else {
+		t.Log(b.String())
 	}
 }
 
 func Test_Table_002(t *testing.T) {
-	c := table.NewTable(data.ZeroSize)
-	r := strings.NewReader(TABLE_A)
-	if err := c.Read(r); err != nil {
+	// The following creates a table of four columns and adds four rows from TABLE_A
+	c := table.NewTable("", "a", "b", "a")
+	if c == nil {
+		t.Fatal("Expected Non-nil return from NewTable")
+	}
+	if err := c.Read(strings.NewReader(TABLE_A)); err != nil {
+		t.Fatal(err)
+	}
+	// There should be four columns and four rows, fourth column name
+	// should be "a" but the key is not
+	if c.Len() != 4 {
+		t.Error("Expected table length to be 4")
+	}
+	for i := 0; i < 4; i++ {
+		col := c.Col(i)
+		if col == nil {
+			t.Error("Unexpected non-nil column")
+		} else if col.Type()&data.Uint == 0 {
+			t.Error("Unexpected uint type for column, got <", col.Type(), ">")
+		} else if col.Type()&data.Nil == 0 {
+			t.Error("Unexpected nil type for column, got <", col.Type(), ">")
+		}
+		if i == 3 {
+			if col.Name() != "a" {
+				t.Error("Unexpected name for column 4, got <", col.Name(), ">")
+			}
+		}
+	}
+
+	// Output table
+	b := new(strings.Builder)
+	if err := c.Write(b, c.OptHeader(), c.OptAscii(0, "")); err != nil {
 		t.Error(err)
 	} else {
-		t.Log(c)
+		t.Log(b.String())
 	}
 }
 
 func Test_Table_003(t *testing.T) {
-	// Read in two tables, re-ordering rows in second read
-	c := table.NewTable(data.ZeroSize)
-	if err := c.Read(strings.NewReader(TABLE_A), c.OptHeader()); err != nil {
-		t.Error(err)
-	} else if err := c.Read(strings.NewReader(TABLE_B), c.OptHeader()); err != nil {
+	// In this test we do same ingestion but don't allow nil values
+	// in which case each column has types uint|string
+	c := table.NewTable()
+	if c == nil {
+		t.Fatal("Expected Non-nil return from NewTable")
+	}
+	if err := c.Read(strings.NewReader(TABLE_A), c.OptType(data.DefaultTypes)); err != nil {
+		t.Fatal(err)
+	}
+	// There should be four columns and four rows
+	if c.Len() != 4 {
+		t.Error("Expected table length to be 4")
+	}
+	for i := 0; i < 4; i++ {
+		col := c.Col(i)
+		if col == nil {
+			t.Error("Unexpected non-nil column")
+		} else if col.Type()&data.Uint == 0 {
+			t.Error("Unexpected uint type for column, got <", col.Type(), ">")
+		} else if col.Type()&data.Nil != 0 {
+			t.Error("Unexpected nil type for column, got <", col.Type(), ">")
+		} else if col.Type()&data.String == 0 {
+			t.Error("Unexpected non-string type for column, got <", col.Type(), ">")
+		}
+	}
+
+	// Output table
+	b := new(strings.Builder)
+	if err := c.Write(b, c.OptHeader(), c.OptAscii(0, "")); err != nil {
 		t.Error(err)
 	} else {
-		t.Log(c)
+		t.Log(b.String())
 	}
 }
 
 func Test_Table_004(t *testing.T) {
-	// Read table with existing columns and rows
-	c := table.NewTable(data.Size{2, 2})
-	if err := c.Read(strings.NewReader(TABLE_A), c.OptHeader(), c.OptType(data.DefaultTypes|data.Nil)); err != nil {
-		t.Error(err)
-	} else if err := c.Write(os.Stdout, c.OptHeader()); err != nil {
+	// Read in two tables, re-ordering rows in second read
+	c := table.NewTable()
+	if err := c.Read(strings.NewReader(TABLE_A), c.OptHeader()); err != nil {
+		t.Fatal(err)
+	}
+	// On first input, header rows are called "0","1","2","3"
+	for i := 0; i < 4; i++ {
+		col := c.Col(i)
+		if col.Name() != fmt.Sprint(i) {
+			t.Error("Unexpected colname, got <", col.Type(), ">")
+		} else if col.Type().Is(data.Uint|data.Nil) == false {
+			t.Error("Unexpected type uint|nil for column, got <", col.Type(), ">")
+		} else if col.Type().Is(data.String) {
+			t.Error("Unexpected string type for column, got <", col.Type(), ">")
+		}
+	}
+
+	// Merge in second table, but don't allow nils
+	if err := c.Read(strings.NewReader(TABLE_B), c.OptHeader(), c.OptType(data.DefaultTypes)); err != nil {
+		t.Fatal(err)
+	}
+
+	// Headings are still 0,1,2,3
+	for i := 0; i < 4; i++ {
+		col := c.Col(i)
+		if col.Name() != fmt.Sprint(i) {
+			t.Error("Unexpected colname, got <", col.Type(), ">")
+		} else if col.Type().Is(data.Uint|data.Nil|data.String) == false {
+			t.Error("Unexpected type uint|nil|string for column, got <", col.Type(), ">")
+		}
+	}
+
+	// Output table
+	b := new(strings.Builder)
+	if err := c.Write(b, c.OptHeader(), c.OptAscii(0, "")); err != nil {
 		t.Error(err)
 	} else {
-		t.Log(c)
+		t.Log(b.String())
 	}
 }
 
 func Test_Table_005(t *testing.T) {
+	// Read table with existing columns and rows
+	// allowing date and duration types and interpreting duration values in seconds
+	// by default
+	c := table.NewTable("A", "B")
+	if err := c.Read(strings.NewReader(TABLE_C), c.OptType(data.Date|data.Duration)); err != nil {
+		t.Error(err)
+	}
+
+	// Two headings
+	for i := 0; i < 2; i++ {
+		col := c.Col(i)
+		switch i {
+		case 0:
+			if col.Name() != "A" {
+				t.Error("Unexpected column name", col.Name())
+			}
+			if col.Type() != data.Date {
+				t.Error("Unexpected column type", col.Type())
+			}
+		case 1:
+			if col.Name() != "B" {
+				t.Error("Unexpected column name", col.Name())
+			}
+			if col.Type() != data.Duration {
+				t.Error("Unexpected column type", col.Type())
+			}
+		}
+	}
+
+	// Output table, truncating durations to hours
+	b := new(strings.Builder)
+	if err := c.Write(b, c.OptHeader(), c.OptAscii(0, ""), c.OptDuration(time.Hour)); err != nil {
+		t.Error(err)
+	} else {
+		t.Log(b.String())
+	}
+}
+
+func Test_Table_006(t *testing.T) {
+	// Transform all float output values to %.2f
 	transformFloat := func(t data.Table) data.TransformFunc {
 		return func(i, j int, v interface{}) (interface{}, error) {
-			col := t.Col(j)
 			if v, ok := v.(float64); ok {
-				return fmt.Sprintf("%v %.2f", col, v), nil
+				return fmt.Sprintf("%.2f", v), nil
 			} else {
 				return nil, data.ErrSkipTransform
 			}
 		}
 	}
+
 	// Read table with existing columns and rows
-	c := table.NewTable(data.ZeroSize)
+	c := table.NewTable()
 	fh, err := os.Open(DATASET_A)
 	if err != nil {
 		t.Fatal(err)
@@ -103,14 +243,20 @@ func Test_Table_005(t *testing.T) {
 	defer fh.Close()
 	if err := c.Read(fh, c.OptHeader(), c.OptType(data.DefaultTypes|data.Nil)); err != nil {
 		t.Error(err)
-	} else if err := c.Write(os.Stdout, c.OptHeader(), c.OptAscii(0, data.BorderLines), c.OptTransform(transformFloat(c))); err != nil {
+	}
+
+	// Output table, with float transform
+	b := new(strings.Builder)
+	if err := c.Write(b, c.OptHeader(), c.OptAscii(0, data.BorderLines), c.OptTransform(transformFloat(c))); err != nil {
 		t.Error(err)
+	} else {
+		t.Log(b.String())
 	}
 }
 
-func Test_Table_006(t *testing.T) {
-	// Read table with existing columns and rows
-	c := table.NewTable(data.ZeroSize)
+func Test_Table_007(t *testing.T) {
+	// Read larger table with existing columns and rows
+	c := table.NewTable()
 	fh, err := os.Open(DATASET_B)
 	if err != nil {
 		t.Fatal(err)
@@ -118,12 +264,54 @@ func Test_Table_006(t *testing.T) {
 	defer fh.Close()
 	if err := c.Read(fh, c.OptHeader(), c.OptType(data.DefaultTypes|data.Nil)); err != nil {
 		t.Error(err)
-	} else if err := c.Write(os.Stdout, c.OptAscii(0, data.BorderLines)); err != nil {
-		t.Error(err)
+	}
+
+	// Summarize column data for each column
+	var col data.TableCol
+	for i := 0; ; i++ {
+		if col = c.Col(i); col == nil {
+			break
+		} else if col.Type().Is(data.Float|data.Uint|data.Int) == false {
+			continue
+		} else if col.Count() == 0 {
+			t.Error("Expected count, got", col.Count())
+		} else if col.Sum() == 0 {
+			t.Error("Expected sum, got", col.Sum())
+		}
 	}
 }
 
-func Test_Table_007(t *testing.T) {
+func Test_Table_008(t *testing.T) {
+	tests := []struct {
+		in   data.Type
+		out  data.Type
+		null bool
+	}{
+		{data.Float, data.Float, false},
+		{data.Uint, data.Uint, false},
+		{data.Int, data.Int, false},
+		{data.Float | data.Uint, data.Float, false},
+		{data.Uint | data.Int, data.Int, false},
+		{data.Float | data.Int | data.Uint, data.Float, false},
+		{data.Float | data.Nil, data.Float, true},
+		{data.Uint | data.Int | data.Nil, data.Int, true},
+		{data.Float | data.Int | data.Uint | data.Nil, data.Float, true},
+		{data.Float | data.Date | data.Nil, data.String, true},
+		{data.Date | data.Nil, data.Date, true},
+		{data.Other | data.Nil, data.Other, true},
+		{0, data.Nil, false},
+		{data.Nil, data.Nil, true},
+	}
+	for i, test := range tests {
+		if x, y := test.in.Type(); x != test.out {
+			t.Error(i, "Unexpected in=", test.in, " type out=", x)
+		} else if y != test.null {
+			t.Error(i, "Unexpected in=", test.in, " null out=", y)
+		}
+	}
+}
+
+func Test_Table_009(t *testing.T) {
 	rowIterator := func(c data.Table) data.IteratorFunc {
 		return func(i int, r []interface{}) error {
 			t.Log(i, "=>", r)
@@ -131,7 +319,7 @@ func Test_Table_007(t *testing.T) {
 		}
 	}
 	// Read table with existing columns and rows
-	c := table.NewTable(data.ZeroSize)
+	c := table.NewTable()
 	if err := c.Read(strings.NewReader(TABLE_A), c.OptType(data.Duration|data.Nil), c.OptRowIterator(rowIterator(c))); err != nil {
 		t.Error(err)
 	} else if err := c.Write(os.Stdout, c.OptAscii(0, "")); err != nil {
@@ -139,7 +327,7 @@ func Test_Table_007(t *testing.T) {
 	}
 }
 
-func Test_Table_008(t *testing.T) {
+func Test_Table_010(t *testing.T) {
 	rowIterator := func(c data.Table) data.IteratorFunc {
 		return func(i int, r []interface{}) error {
 			t.Log(i, "=>", r)
@@ -156,25 +344,13 @@ func Test_Table_008(t *testing.T) {
 	}
 
 	// Read table with existing columns and rows
-	c := table.NewTable(data.ZeroSize)
+	c := table.NewTable()
 	if err := c.Read(strings.NewReader(TABLE_C), c.OptType(data.DefaultTypes), c.OptRowIterator(rowIterator(c))); err != nil {
 		t.Error(err)
 	}
 	c.Sort(compareFunc(c))
 	// Write sorted data
 	if err := c.Write(os.Stdout, c.OptHeader(), c.OptAscii(0, "")); err != nil {
-		t.Error(err)
-	}
-}
-
-func Test_Table_009(t *testing.T) {
-	// Read table with existing columns and rows
-	c := table.NewTable(data.ZeroSize)
-	c.Append(0, 0, 0)
-	c.Append(1)
-	c.Append(2, 2, 2, 2, 2)
-	// Write out
-	if err := c.Write(os.Stdout, c.OptAscii(0, "")); err != nil {
 		t.Error(err)
 	}
 }

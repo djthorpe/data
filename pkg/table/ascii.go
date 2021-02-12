@@ -7,12 +7,6 @@ import (
 	"strings"
 )
 
-type asciicol struct {
-	w   int // Col width
-	a   int // Col alignment
-	fmt string
-}
-
 const (
 	borderNW = iota
 	borderN
@@ -27,20 +21,12 @@ const (
 	borderH
 )
 
-const (
-	alignLeft = iota
-	alignRight
-)
-
 /////////////////////////////////////////////////////////////////////
 // ASCII
 
 func (t *Table) writeAscii(w io.Writer, fn funcRowWriter) error {
-	cols := make([]*asciicol, t.header.w)
-	for i := range cols {
-		cols[i] = &asciicol{15, alignRight, ""}
-	}
-
+	cols := t.header.cols()
+	fmt.Println(cols)
 	// Write top line
 	if err := t.asciiTop(w, cols); err != nil {
 		return err
@@ -49,7 +35,11 @@ func (t *Table) writeAscii(w io.Writer, fn funcRowWriter) error {
 	// Iterate through rows
 	for i, r := range t.r {
 		if t.hasOpt(optHeader) {
-			if err := t.asciiHeader(w, cols, t.header.row()); err != nil {
+			header := make([]string, t.header.w)
+			for i, col := range t.header.cols() {
+				header[i] = col.Name()
+			}
+			if err := t.asciiHeader(w, cols, header); err != nil {
 				return err
 			}
 			t.setOpt(optHeader, false)
@@ -70,37 +60,37 @@ func (t *Table) writeAscii(w io.Writer, fn funcRowWriter) error {
 	return nil
 }
 
-func (t *Table) asciiTop(w io.Writer, cols []*asciicol) error {
+func (t *Table) asciiTop(w io.Writer, cols []*col) error {
 	row := make([]string, len(cols))
 	for i, col := range cols {
-		row[i] = strings.Repeat("-", col.w)
+		row[i] = strings.Repeat("-", col.asciiWidth())
 	}
 	return t.asciiLine([]byte("+-"), []byte("-+-"), []byte("-+"), w, cols, row)
 }
 
-func (t *Table) asciiRow(w io.Writer, cols []*asciicol, row []string) error {
+func (t *Table) asciiRow(w io.Writer, cols []*col, row []string) error {
 	return t.asciiLine([]byte("| "), []byte(" | "), []byte(" |"), w, cols, row)
 }
 
-func (t *Table) asciiHeader(w io.Writer, cols []*asciicol, row []string) error {
+func (t *Table) asciiHeader(w io.Writer, cols []*col, row []string) error {
 	if err := t.asciiLine([]byte("| "), []byte(" | "), []byte(" |"), w, cols, row); err != nil {
 		return err
 	}
 	return t.asciiTop(w, cols)
 }
 
-func (t *Table) asciiBottom(w io.Writer, cols []*asciicol) error {
+func (t *Table) asciiBottom(w io.Writer, cols []*col) error {
 	row := make([]string, len(cols))
 	for i, col := range cols {
-		row[i] = strings.Repeat("-", col.w)
+		row[i] = strings.Repeat("-", col.asciiWidth())
 	}
 	return t.asciiLine([]byte("+-"), []byte("-+-"), []byte("-+"), w, cols, row)
 }
 
-func (t *Table) asciiLine(l, m, r []byte, w io.Writer, cols []*asciicol, row []string) error {
+func (t *Table) asciiLine(l, m, r []byte, w io.Writer, cols []*col, row []string) error {
 	row_ := make([][]byte, len(cols))
 	for i, col := range cols {
-		row_[i] = []byte(fmt.Sprintf(col.Fmt(), row[i])[:col.w])
+		row_[i] = []byte(fmt.Sprintf(col.Fmt(), row[i])[:col.asciiWidth()])
 	}
 	if _, err := w.Write(l); err != nil {
 		return err
@@ -115,21 +105,4 @@ func (t *Table) asciiLine(l, m, r []byte, w io.Writer, cols []*asciicol, row []s
 		return err
 	}
 	return nil
-}
-
-func (c *asciicol) Fmt() string {
-	if c.fmt == "" {
-		if c.w == 0 {
-			return "%s"
-		}
-		switch c.a {
-		case alignLeft:
-			c.fmt = fmt.Sprint("%-", c.w, "s")
-		case alignRight:
-			c.fmt = fmt.Sprint("%+", c.w, "s")
-		default:
-			c.fmt = fmt.Sprint("%*", c.w, "s")
-		}
-	}
-	return c.fmt
 }

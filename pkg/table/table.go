@@ -35,21 +35,14 @@ type funcRowWriter func(int, []interface{}) ([]string, error)
 /////////////////////////////////////////////////////////////////////
 // LIFECYCLE
 
-func NewTable(size data.Size) data.Table {
+func NewTable(cols ...string) data.Table {
 	t := new(Table)
+	t.header = NewHeader(len(cols))
+	t.opts.d = optNil | optUint | optInt | optFloat | optBool | optDuration | optDate | optDatetime
 
-	// Set width and height of the table, if error is returned
-	// then set nil
-	if w, h, err := sizeFor(size); err != nil {
-		return nil
-	} else {
-		t.header = NewHeader(w)
-
-		// Append any existing rows
-		t.r = make([]*row, h)
-		for i := 0; i < h; i++ {
-			t.r[i] = NewRow(nil)
-		}
+	// Append columns
+	for _, col := range cols {
+		t.header.append(col)
 	}
 
 	// Return initial table
@@ -78,11 +71,17 @@ func (t *Table) Read(r io.Reader, opts ...data.TableOpt) error {
 				}
 			}
 			// Call row iterator
-			if err := t.rowIterator(i, row.v); err == nil {
-				t.r = append(t.r, row)
-			} else if errors.Is(err, data.ErrSkipTransform) == false {
+			if err := t.rowIterator(i, row.v); errors.Is(err, data.ErrSkipTransform) {
+				return nil
+			} else if err != nil {
 				return err
 			}
+			// Validate values and re-scan if the width of the table has changed
+			if rescan := t.header.validate(row); rescan {
+				t.validate()
+			}
+			// Append the row
+			t.r = append(t.r, row)
 			// Return success
 			return nil
 		})
@@ -135,6 +134,7 @@ func (t *Table) Write(w io.Writer, opts ...data.TableOpt) error {
 }
 
 // Stream data with table options
+/*
 func (t *Table) Stream(w io.Writer, r io.Reader, opts ...data.TableOpt) error {
 	// Set option flags
 	t.applyOpt(opts)
@@ -147,13 +147,34 @@ func (t *Table) Stream(w io.Writer, r io.Reader, opts ...data.TableOpt) error {
 	// Not yet implemented
 	return nil
 }
+*/
 
 // Col returns column information for a zero-indexed table column
 func (t *Table) Col(i int) data.TableCol {
-	if i < 0 || i >= t.header.w {
+	c := t.header.col(i)
+	if c == nil {
+		return nil
+	}
+	// Summarize data for column
+	c.group(nil)
+	for _, row := range t.r {
+		if len(row.v) < c.i || row.v[c.i] == nil {
+			continue
+		} else {
+			c.group(row.v[c.i])
+		}
+	}
+
+	// Return column
+	return c
+}
+
+// Row returns values for a zero-indexed table row
+func (t *Table) Row(i int) []interface{} {
+	if i < 0 || i >= len(t.r) {
 		return nil
 	} else {
-		return t.header.col(i)
+		return t.r[i].row(t.header.w)
 	}
 }
 
@@ -177,11 +198,12 @@ func (t *Table) Swap(i, j int) {
 	t.r[i], t.r[j] = t.r[j], t.r[i]
 }
 
-func (t *Table) Append(row ...interface{}) {
-	// Extend header width as necessary
-	t.header.w = maxInt(t.header.w, len(row))
-	// Append the row
-	t.r = append(t.r, NewRow(row))
+func (t *Table) Append(values ...interface{}) {
+	row := NewRow(values)
+	if rescan := t.header.validate(row); rescan {
+		t.validate()
+	}
+	t.r = append(t.r, row)
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -199,16 +221,10 @@ func (t *Table) String() string {
 /////////////////////////////////////////////////////////////////////
 // PRIVATE METHODS
 
-// sizeFor returns w,h as integers, and returns error
-// if the size does not contain positive (or zero) integers
-func sizeFor(size data.Size) (int, int, error) {
-	if size.W < 0 || size.H < 0 {
-		return 0, 0, data.ErrBadParameter
-	}
-	if w, h := int(size.W), int(size.H); float32(w) != size.W || float32(h) != size.H {
-		return 0, 0, data.ErrBadParameter
-	} else {
-		return w, h, nil
+// validate rescans the table for types
+func (t *Table) validate() {
+	for _, r := range t.r {
+		t.header.validate(r)
 	}
 }
 
@@ -227,10 +243,6 @@ func (t *Table) readRow(i int, order []int, row []string, fn funcRowReader) erro
 	} else if len(order) != 0 && len(order) != len(row) {
 		return data.ErrInternalAppError
 	}
-	// Extend header width as necessary
-	if order == nil {
-		t.header.w = maxInt(t.header.w, len(row))
-	}
 	// Re-order row as necessary
 	if len(order) == 0 {
 		return fn(i, row)
@@ -240,13 +252,5 @@ func (t *Table) readRow(i int, order []int, row []string, fn funcRowReader) erro
 			r[order[i]] = value
 		}
 		return fn(i, r)
-	}
-}
-
-func maxInt(a, b int) int {
-	if a > b {
-		return a
-	} else {
-		return b
 	}
 }

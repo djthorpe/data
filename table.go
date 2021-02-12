@@ -2,6 +2,7 @@ package data
 
 import (
 	"io"
+	"strings"
 	"time"
 )
 
@@ -20,6 +21,7 @@ type CompareFunc func(a, b []interface{}) bool
 
 const (
 	Nil Type = (1 << iota)
+	String
 	Uint
 	Int
 	Float
@@ -27,8 +29,11 @@ const (
 	Date
 	Datetime
 	Bool
-	String       Type = 0
-	DefaultTypes      = Uint | Int | Float | Duration | Date | Datetime | Bool
+	Other
+	NumberTypes  = Uint | Int | Float
+	DefaultTypes = NumberTypes | Duration | Date | Datetime | Bool
+	TypeMin      = Nil
+	TypeMax      = Other
 )
 
 const (
@@ -56,7 +61,12 @@ type Table interface {
 	// Len returns the number of rows
 	Len() int
 
+	// Row returns values for a zero-indexed table row
+	// or nil if the row does not exist
+	Row(int) []interface{}
+
 	// Col returns column information for a zero-indexed table column
+	// or nil if the column doesn't exist
 	Col(int) TableCol
 
 	// Cell returns cell format given a cell string
@@ -112,9 +122,116 @@ type Table interface {
 	OptRowIterator(IteratorFunc) TableOpt
 }
 
-// TableCol represents information about a table
-// column
+// TableCol represents information about a table column
 type TableCol interface {
+	// Name returns the column name
 	Name() string
+
+	// Type returns the types that the column represents
 	Type() Type
+
+	// Min returns the minimum value of all column numbers or zero
+	Min() float64
+
+	// Max returns the maximum value of all column numbers or zero
+	Max() float64
+
+	// Sum returns the sum of all column numbers or zero
+	Sum() float64
+
+	// Count returns the count of all column numbers
+	Count() uint64
+
+	// Mean returns the mean average value of all column numbers
+	// or +Inf if no numbers in the column
+	Mean() float64
+}
+
+/////////////////////////////////////////////////////////////////////
+// METHODS
+
+// Is returns true if all types are represented. For example.
+//
+//   t.Is(Nil) returns true if type contains nil
+//   t.Is(Nil|Int) returns true if type is Int or Nil
+//
+func (t Type) Is(f Type) bool {
+	return t&f == f
+}
+
+// Type returns a single type which can represent a set
+// of types, and also returns true if the columns includes
+// nil values
+func (t Type) Type() (Type, bool) {
+	var isnil = t.Is(Nil)
+	if isnil {
+		t ^= Nil // Remove nil from t
+	}
+	// Deal with nil case
+	if t == 0 {
+		return Nil, isnil
+	}
+	// Deal with singular case
+	if t.Is(Other) {
+		return t, isnil
+	}
+	if t.FlagString() != "other" {
+		return t, isnil
+	}
+	// Numerical cases, float,int,uint
+	if t|NumberTypes == NumberTypes {
+		switch {
+		case t.Is(Float):
+			return Float, isnil
+		case t.Is(Int):
+			return Int, isnil
+		default:
+			return Uint, isnil
+		}
+	}
+	// Otherwise, string needs to be used to represent
+	return String, isnil
+}
+
+/////////////////////////////////////////////////////////////////////
+// STRINGIFY
+
+func (t Type) String() string {
+	if t == 0 {
+		return "none"
+	}
+	str := ""
+	for v := TypeMin; v <= TypeMax; v <<= 1 {
+		if t&v == v {
+			str += "|" + v.FlagString()
+		}
+	}
+	return strings.TrimPrefix(str, "|")
+}
+
+func (t Type) FlagString() string {
+	switch t {
+	case Nil:
+		return "nil"
+	case Uint:
+		return "uint"
+	case Int:
+		return "int"
+	case Float:
+		return "float"
+	case Duration:
+		return "duration"
+	case Date:
+		return "date"
+	case Datetime:
+		return "datetime"
+	case Bool:
+		return "bool"
+	case String:
+		return "string"
+	case Other:
+		fallthrough
+	default:
+		return "other"
+	}
 }

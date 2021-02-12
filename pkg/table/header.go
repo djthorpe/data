@@ -2,7 +2,6 @@ package table
 
 import (
 	"fmt"
-	"strings"
 )
 
 /////////////////////////////////////////////////////////////////////
@@ -19,7 +18,7 @@ type header struct {
 
 func NewHeader(cap int) *header {
 	h := new(header)
-	h.w = cap
+	h.w = 0
 	h.f = make(map[string]*col, cap)
 	h.i = make(map[int]*col, cap)
 	return h
@@ -47,14 +46,15 @@ func (h *header) append(value string) int {
 	}
 }
 
-func (h *header) row() []string {
-	result := make([]string, h.w)
+func (h *header) cols() []*col {
+	result := make([]*col, h.w)
 	for i := range result {
-		if f, exists := h.i[i]; exists {
-			result[i] = f.value
-		} else {
-			result[i] = fmt.Sprintf("Col_%02d", i)
+		if _, exists := h.i[i]; exists == false {
+			f := NewCol(i, "")
+			h.f[f.key], h.i[f.i] = f, f
+			h.w++
 		}
+		result[i] = h.i[i]
 	}
 	return result
 }
@@ -67,12 +67,24 @@ func (h *header) col(i int) *col {
 	}
 }
 
-func (h *header) validate(row []interface{}) {
-	for i, v := range row {
-		if c, exists := h.i[i]; exists {
-			c.validate(v)
+// validate will adjust width of header to accommodate
+// new values and then validate each value against header
+// returns true if width was changed
+func (h *header) validate(row *row) bool {
+	var ch bool
+	// Add additional columns
+	if n := len(row.v) - h.w; n > 0 {
+		ch = true
+		for i := 0; i < n; i++ {
+			h.append("")
 		}
 	}
+	// Validate values
+	for i, v := range row.row(h.w) {
+		h.i[i].validate(v)
+	}
+	// Return true if dimensions of table have changed
+	return ch
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -80,6 +92,17 @@ func (h *header) validate(row []interface{}) {
 
 func (h *header) String() string {
 	str := "<h"
-	str += " " + strings.Join(h.row(), ",")
+	str += " " + fmt.Sprint(h.cols())
 	return str + ">"
+}
+
+/////////////////////////////////////////////////////////////////////
+// PRIVATE METHODS
+
+func maxInt(a, b int) int {
+	if a > b {
+		return a
+	} else {
+		return b
+	}
 }

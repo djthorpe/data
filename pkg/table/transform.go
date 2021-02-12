@@ -2,6 +2,7 @@ package table
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -13,6 +14,7 @@ import (
 // TYPES
 
 type transformInFunc func(*Table, string) (interface{}, error)
+type transformOutFunc func(*Table, interface{}) (string, error)
 
 /////////////////////////////////////////////////////////////////////
 // CONSTANTS
@@ -27,6 +29,11 @@ var (
 		transformInBool,
 		transformInDate,
 		transformInDatetime,
+	}
+	defaultOutTransforms = []transformOutFunc{
+		transformOutNil,
+		transformOutDuration,
+		transformOutDate,
 	}
 )
 
@@ -67,8 +74,8 @@ func (t *Table) outValue(i, j int, value interface{}) (interface{}, error) {
 			return v_, nil
 		}
 	}
-	// Return original value
-	return value, nil
+	// Use default transformation
+	return t.defaultOutTransform(value)
 }
 
 // rowIterator calls a row iterator
@@ -78,10 +85,6 @@ func (t *Table) rowIterator(i int, row []interface{}) error {
 			return err
 		}
 	}
-
-	// Pass values into header to determine types, etc
-	t.header.validate(row)
-
 	// Return success
 	return nil
 }
@@ -98,12 +101,35 @@ func (t *Table) defaultInTransform(str string) (interface{}, error) {
 	return str, nil
 }
 
+func (t *Table) defaultOutTransform(value interface{}) (string, error) {
+	for _, fn := range defaultOutTransforms {
+		if value, err := fn(t, value); err == nil {
+			return value, nil
+		} else if errors.Is(err, data.ErrSkipTransform) == false {
+			return "", err
+		}
+	}
+	// By default, no transformation is done
+	return fmt.Sprint(value), nil
+}
+
 func transformInNil(t *Table, str string) (interface{}, error) {
 	// Check for nil values
 	if t.hasOpt(optNil) && nilValueForString(str) {
 		return nil, nil
 	} else {
 		return nil, data.ErrSkipTransform
+	}
+}
+
+func transformOutNil(t *Table, value interface{}) (string, error) {
+	if value != nil {
+		return "", data.ErrSkipTransform
+	}
+	if t.hasOpt(optNil) {
+		return "<nil>", nil
+	} else {
+		return "", nil
 	}
 }
 
@@ -141,11 +167,32 @@ func transformInDuration(t *Table, str string) (interface{}, error) {
 	if t.hasOpt(optDuration) == false {
 		return nil, data.ErrSkipTransform
 	} else if v, err := time.ParseDuration(str); err == nil {
-		return v.Truncate(t.opts.dur), nil
+		if t.opts.dur != 0 {
+			return v.Truncate(t.opts.dur), nil
+		} else {
+			return v, nil
+		}
 	} else if v, err := strconv.ParseFloat(str, 64); err == nil {
-		return time.Duration(v * float64(t.opts.dur)), nil
+		if t.opts.dur == 0 {
+			return time.Duration(v * float64(time.Second)), nil
+		} else {
+			return time.Duration(v * float64(t.opts.dur)), nil
+		}
 	} else {
 		return nil, data.ErrSkipTransform
+	}
+}
+
+func transformOutDuration(t *Table, v interface{}) (string, error) {
+	if t.hasOpt(optDuration) == false {
+		return "", data.ErrSkipTransform
+	}
+	if v_, ok := v.(time.Duration); ok == false {
+		return "", data.ErrSkipTransform
+	} else if t.opts.dur == 0 {
+		return v_.String(), nil
+	} else {
+		return v_.Truncate(t.opts.dur).String(), nil
 	}
 }
 
@@ -183,6 +230,19 @@ func transformInDate(t *Table, str string) (interface{}, error) {
 	}
 }
 
+func transformOutDate(t *Table, v interface{}) (string, error) {
+	if t.hasOpt(optDate) == false {
+		return "", data.ErrSkipTransform
+	}
+	if v_, ok := v.(time.Time); ok == false {
+		return "", data.ErrSkipTransform
+	} else if dateValueForTime(v_) == false {
+		return "", data.ErrSkipTransform
+	} else {
+		return v_.Format("2006-01-02"), nil
+	}
+}
+
 func transformInDatetime(t *Table, str string) (interface{}, error) {
 	if t.hasOpt(optDatetime) == false {
 		return nil, data.ErrSkipTransform
@@ -203,4 +263,8 @@ func transformInDatetime(t *Table, str string) (interface{}, error) {
 
 func nilValueForString(v string) bool {
 	return v == "" || strings.TrimSpace(v) == ""
+}
+
+func dateValueForTime(v time.Time) bool {
+	return v.Hour() == 0 && v.Minute() == 0 && v.Second() == 0 && v.Nanosecond() == 0
 }

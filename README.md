@@ -4,8 +4,8 @@ This repository contains various data extraction, transformation
 processing and visualization tools. Currently it contains the 
 following:
 
-	* `data.Table` provides you with a way to ingest, transform
-		and process data tables in comma-separated value format.
+* `data.Table` provides you with a way to ingest, transform
+	and process data tables in comma-separated value format.
 
 ## Tables
 
@@ -125,11 +125,31 @@ The following table options are relevant for reading:
 * `table.OptTransform(...TransformFunc)` sets one or
 	more value transformation functions, which convert a text into native value. Any transform function can return `data.ErrSkipTransform` in order to move onto the next transform function.
 
-See below for more information and examples of custom transsformation functions.
+If you read multiple sets of data into a single table, extending the table in both width
+and height as necessary.
 
 ### Table writing formats and options
 
-TODO
+To write data to an external source, use the `table.Write` method with writing options:
+
+```go
+type Table interface {
+	Write(io.Writer, ...TableOpt) error
+	// ...
+}
+```
+
+The following table options are relevant for writing:
+
+* `table.OptHeader()` indicates the header of the table
+	should be output first;
+* `table.OptCsv(rune)` sets the writing format to CSV and
+	sets the delimiter used for separating values on a row;
+* `table.OptTransform(...TransformFunc)` sets one or
+	more value transformation functions, which convert a native 
+	value into text. Any transform function can return
+	`data.ErrSkipTransform` in order to move onto the next 
+	transform function.
 
 ### Transforming data values
 

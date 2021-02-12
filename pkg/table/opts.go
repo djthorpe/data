@@ -48,6 +48,10 @@ func (t *Table) OptTransform(fns ...data.TransformFunc) data.TableOpt {
 
 func (t *Table) OptType(types data.Type) data.TableOpt {
 	return func(t data.Table) {
+		// Reset type options
+		t.(*Table).setOpt(t.(*Table).opts.d, false)
+
+		// Set type options
 		if types&data.Nil != 0 {
 			t.(*Table).setOpt(optNil, true)
 		}
@@ -123,7 +127,7 @@ func (t *Table) applyOpt(opts []data.TableOpt) {
 	// Set default options
 	t.opts.o = t.opts.d
 	t.opts.tz = time.Local
-	t.opts.dur = time.Second
+	t.opts.dur = 0
 	t.opts.border = []rune(data.BorderDefault)
 	t.opts.transform = []data.TransformFunc{}
 	t.opts.iterator = nil
