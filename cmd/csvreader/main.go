@@ -12,10 +12,13 @@ import (
 var (
 	flagHeader    = flag.Bool("header", true, "CSV header")
 	flagDelimiter = flag.String("delim", "", "CSV field delimiter")
+	flagOutputCsv = flag.Bool("csv", false, "CSV output")
+	flagOutputSql = flag.Bool("sql", false, "SQL output")
 )
 
 func main() {
-	opts := []data.TableOpt{}
+	inOpts := []data.TableOpt{}
+	outOpts := []data.TableOpt{}
 
 	flag.Parse()
 	if flag.NArg() == 0 {
@@ -23,27 +26,36 @@ func main() {
 		os.Exit(-1)
 	}
 
-	t := table.NewTable(data.ZeroSize)
+	t := table.NewTable()
 
 	// Set options
 	if *flagDelimiter != "" {
 		d := []rune(*flagDelimiter)
-		opts = append(opts, t.OptCsv(d[0]))
+		inOpts = append(inOpts, t.OptCsv(d[0]))
 	}
 	if *flagHeader {
-		opts = append(opts, t.OptHeader())
+		inOpts = append(inOpts, t.OptHeader())
+		outOpts = append(outOpts, t.OptHeader())
+	}
+	switch {
+	case *flagOutputCsv:
+		outOpts = append(outOpts, t.OptCsv(0))
+	case *flagOutputSql:
+		outOpts = append(outOpts, t.OptSql("data"))
+	default:
+		outOpts = append(outOpts, t.OptAscii(0, data.BorderLines))
 	}
 
 	// Read CSV files
 	for _, csv := range flag.Args() {
-		if err := read(t, opts, csv); err != nil {
+		if err := read(t, inOpts, csv); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(-1)
 		}
 	}
 
 	// Write combined Ascii table
-	if err := t.Write(os.Stdout, t.OptHeader(), t.OptAscii(80, data.BorderLines)); err != nil {
+	if err := t.Write(os.Stdout, outOpts...); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(-1)
 	}

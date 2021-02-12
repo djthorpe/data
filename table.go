@@ -109,6 +109,11 @@ type Table interface {
 	// zero then comma is used
 	OptCsv(rune) TableOpt
 
+	// OptSql used to Write SQL format with the provided table name. The output
+	// can be directly ingested by SQLite. Including OptHeader() option will also
+	// include a statement to create the table
+	OptSql(string) TableOpt
+
 	// OptDuration used on Read to interpret values into durations (h,m,s,ms,ns)
 	// and truncate to the provided duration
 	OptDuration(time.Duration) TableOpt

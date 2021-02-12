@@ -24,6 +24,7 @@ type Table struct {
 		transform  []data.TransformFunc
 		iterator   data.IteratorFunc
 		compare    data.CompareFunc
+		name       string
 	}
 	*header
 	r []*row
@@ -102,6 +103,20 @@ func (t *Table) Write(w io.Writer, opts ...data.TableOpt) error {
 	switch {
 	case t.hasOpt(optAscii):
 		return t.writeAscii(w, func(i int, row []interface{}) ([]string, error) {
+			result := make([]string, len(row))
+			for j, v := range row {
+				if v_, err := t.outValue(i, j, v); err != nil {
+					return nil, err
+				} else if v__, ok := v_.(string); ok {
+					result[j] = v__
+				} else {
+					result[j] = fmt.Sprint(v_)
+				}
+			}
+			return result, nil
+		})
+	case t.hasOpt(optSql):
+		return t.writeSql(w, func(i int, row []interface{}) ([]string, error) {
 			result := make([]string, len(row))
 			for j, v := range row {
 				if v_, err := t.outValue(i, j, v); err != nil {

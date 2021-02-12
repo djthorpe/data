@@ -421,3 +421,25 @@ func Test_Table_012(t *testing.T) {
 		t.Log("\n" + b.String())
 	}
 }
+
+func Test_Table_013(t *testing.T) {
+
+	// Read table with existing columns and rows
+	c := table.NewTable()
+	fh, err := os.Open(DATASET_A)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer fh.Close()
+	if err := c.Read(fh, c.OptHeader(), c.OptType(data.DefaultTypes|data.Nil)); err != nil {
+		t.Error(err)
+	}
+
+	// Output table, adding [] around IP address
+	b := new(strings.Builder)
+	if err := c.Write(b, c.OptHeader(), c.OptSql("data")); err != nil {
+		t.Error(err)
+	} else {
+		t.Log("\n" + b.String())
+	}
+}

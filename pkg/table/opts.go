@@ -26,6 +26,7 @@ const (
 	optDatetime
 	optAscii
 	optCsv
+	optSql
 )
 
 /////////////////////////////////////////////////////////////////////
@@ -96,6 +97,19 @@ func (t *Table) OptCsv(delim rune) data.TableOpt {
 		t.(*Table).setOpt(optCsv, true)
 		if delim != 0 {
 			t.(*Table).opts.csvDelim = delim
+		}
+	}
+}
+
+func (t *Table) OptSql(name string) data.TableOpt {
+	return func(t data.Table) {
+		t.(*Table).setOpt(optSql, true)
+		if name == "" {
+			if t.(*Table).opts.name == "" {
+				t.(*Table).opts.name = "data"
+			}
+		} else {
+			t.(*Table).opts.name = name
 		}
 	}
 }

@@ -35,6 +35,7 @@ var (
 		transformOutFloat,
 		transformOutDuration,
 		transformOutDate,
+		transformOutDatetime,
 	}
 )
 
@@ -128,7 +129,11 @@ func transformOutNil(t *Table, value interface{}) (string, error) {
 		return "", data.ErrSkipTransform
 	}
 	if t.hasOpt(optNil) {
-		return "<nil>", nil
+		if t.hasOpt(optSql) {
+			return "NULL", nil
+		} else {
+			return "<nil>", nil
+		}
 	} else {
 		return "", nil
 	}
@@ -279,6 +284,17 @@ func transformInDatetime(t *Table, str string) (interface{}, error) {
 		return v, nil
 	} else {
 		return nil, data.ErrSkipTransform
+	}
+}
+
+func transformOutDatetime(t *Table, v interface{}) (string, error) {
+	if t.hasOpt(optDatetime) == false {
+		return "", data.ErrSkipTransform
+	}
+	if v_, ok := v.(time.Time); ok == false {
+		return "", data.ErrSkipTransform
+	} else {
+		return v_.Format(time.RFC3339), nil
 	}
 }
 

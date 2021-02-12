@@ -59,6 +59,15 @@ func (h *header) cols() []*col {
 	return result
 }
 
+func (h *header) names() []string {
+	cols := h.cols()
+	result := make([]string, len(cols))
+	for i := range result {
+		result[i] = cols[i].Name()
+	}
+	return result
+}
+
 func (h *header) col(i int) *col {
 	if c, exists := h.i[i]; exists {
 		return c

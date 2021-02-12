@@ -51,8 +51,11 @@ func (t *Table) writeCsv(w io.Writer, fn funcRowWriter) error {
 
 	// Iterate through rows
 	for i, r := range t.r {
-		if i == 0 && t.hasOpt(optHeader) {
-			// Output the header
+		if t.hasOpt(optHeader) {
+			if err := csv.Write(t.header.names()); err != nil {
+				return err
+			}
+			t.setOpt(optHeader, false)
 		}
 		if row, err := fn(i, r.row(t.header.w)); err != nil {
 			return err
