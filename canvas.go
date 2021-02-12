@@ -38,6 +38,7 @@ type Canvas interface {
 	// Drawing primitives
 	Circle(Point, float32) CanvasElement
 	Ellipse(Point, Size) CanvasElement
+	Path([]Point) CanvasElement
 }
 
 type CanvasGroup interface {
@@ -71,6 +72,11 @@ const (
 var (
 	ZeroSize  = Size{0, 0}
 	ZeroPoint = Point{0, 0}
+)
+
+var (
+	A4PortraitSize  = Size{594, 841}
+	A4LandscapeSize = Size{841, 594}
 )
 
 var (

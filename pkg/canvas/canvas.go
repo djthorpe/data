@@ -2,6 +2,7 @@ package canvas
 
 import (
 	"encoding/xml"
+	"fmt"
 	"io"
 
 	"github.com/djthorpe/data"
@@ -59,6 +60,26 @@ func (e *Element) Ellipse(centre data.Point, radius data.Size) data.CanvasElemen
 	c.Attr("rx", radius.W)
 	c.Attr("ry", radius.H)
 	e.addChild(c)
+	return e
+}
+
+func (e *Element) Path(pts []data.Point) data.CanvasElement {
+	// We require at least two elements for a path
+	if len(pts) < 2 {
+		return nil
+	}
+	c := NewElement("path", "")
+	attr := ""
+	for i, pt := range pts {
+		if i == 0 {
+			attr += fmt.Sprint("M ", pt.X, pt.Y)
+		} else {
+			attr += fmt.Sprint(" L ", pt.X, pt.Y)
+		}
+	}
+	c.Attr("d", attr)
+	e.addChild(c)
+	fmt.Println(c)
 	return e
 }
 

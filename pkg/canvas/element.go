@@ -63,7 +63,12 @@ func (e *Element) Class(value string) {
 
 func (e *Element) String() string {
 	str := "<" + e.XMLName.Local
-	str += " " + fmt.Sprint(e.children)
+	for _, attr := range e.Attrs {
+		str += fmt.Sprintf(" %v=%q", attr.Name.Local, attr.Value)
+	}
+	if len(e.children) > 0 {
+		str += " <" + fmt.Sprint(e.children) + ">"
+	}
 	return str + ">"
 }
 
