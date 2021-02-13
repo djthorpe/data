@@ -108,9 +108,7 @@ func isNaN(f float32) bool {
 /*
 
 func (p *points) WritePath(c data.Canvas) data.CanvasGroup {
-	return c.Group(
-		c.Path(p.p),
-	)
+
 }
 
 */
