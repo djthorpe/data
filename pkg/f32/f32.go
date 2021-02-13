@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// Return absolute value
+// Abs returns an absolute value of the argument
 func Abs(v float32) float32 {
 	if IsNaN(v) || v >= 0 {
 		return v
@@ -15,7 +15,7 @@ func Abs(v float32) float32 {
 	}
 }
 
-// Return minimum value
+// Min returns minimum value of arguments
 func Min(v ...float32) float32 {
 	if len(v) == 0 {
 		return NaN()
@@ -32,7 +32,17 @@ func Min(v ...float32) float32 {
 	return min
 }
 
-// Return maximum value
+// Floor returns whole number value rounded down
+func Floor(v float32) float32 {
+	return float32(math.Floor(float64(v)))
+}
+
+// Ceil returns whole number value rounded up
+func Ceil(v float32) float32 {
+	return float32(math.Ceil(float64(v)))
+}
+
+// Max returns maximum value of arguments
 func Max(v ...float32) float32 {
 	if len(v) == 0 {
 		return NaN()
@@ -49,7 +59,12 @@ func Max(v ...float32) float32 {
 	return max
 }
 
-// Cast any numeric value to float32 or return NaN
+// Sqrt returns square root
+func Sqrt(v float32) float32 {
+	return float32(math.Sqrt(float64(v)))
+}
+
+// Cast returns a float32 from any numeric value or returns NaN otherwise
 func Cast(v interface{}) float32 {
 	if v == nil {
 		return NaN()
@@ -84,17 +99,17 @@ func Cast(v interface{}) float32 {
 	}
 }
 
-// Return true if value is NaN
+// IsNaN returns true if value is NaN
 func IsNaN(f float32) bool {
 	return f != f
 }
 
-// Return NaN value
+// NaN return a NaN value
 func NaN() float32 {
 	return float32(math.NaN())
 }
 
-// Return string with values delimited by commas
+// String returns values delimited by commas as a string
 func String(values ...float32) string {
 	str := ""
 

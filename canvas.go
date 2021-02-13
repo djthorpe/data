@@ -20,6 +20,7 @@ type Size struct {
 }
 
 type Unit int
+type TextAlign int
 
 /////////////////////////////////////////////////////////////////////
 // INTERFACES
@@ -44,6 +45,7 @@ type Canvas interface {
 	Path([]Point) CanvasElement
 	Line(Point, Point) CanvasElement
 	Rect(Point, Size) CanvasElement
+	Text(Point, ...CanvasText) CanvasElement
 
 	// Transform primitives
 	Scale(Size) CanvasTransform
@@ -59,6 +61,11 @@ type Canvas interface {
 	Stroke(Color, float32) CanvasStyle
 	StrokeWidth(float32) CanvasStyle
 	NoStroke() CanvasStyle
+	FontSize(float32, Unit) CanvasStyle
+	TextAnchor(TextAlign) CanvasStyle
+
+	// Text primitives
+	Span(string) CanvasText
 }
 
 type CanvasGroup interface {
@@ -77,6 +84,7 @@ type CanvasElement interface {
 
 type CanvasStyle interface{}
 type CanvasTransform interface{}
+type CanvasText interface{}
 
 /////////////////////////////////////////////////////////////////////
 // CONSTANTS
@@ -91,6 +99,12 @@ const (
 	PT
 	EX
 	EM
+)
+
+const (
+	Start TextAlign = iota
+	Middle
+	End
 )
 
 var (
@@ -110,6 +124,19 @@ var (
 
 func (s Size) UnitString(u Unit) (string, string) {
 	return fmt.Sprint(s.W, u.String()), fmt.Sprint(s.H, u.String())
+}
+
+func (ta TextAlign) String() string {
+	switch ta {
+	case Middle:
+		return "middle"
+	case End:
+		return "end"
+	case Start:
+		fallthrough
+	default:
+		return "start"
+	}
 }
 
 func (u Unit) String() string {

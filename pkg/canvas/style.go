@@ -23,6 +23,8 @@ type styledef struct {
 	Color   data.Color
 	Opacity float32
 	Width   float32
+	Unit    data.Unit
+	Align   data.TextAlign
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -36,9 +38,11 @@ const (
 	styleStrokeColor
 	styleStrokeOpacity
 	styleStrokeWidth
+	styleFontSize
+	styleTextAnchor
 	styleNone styleop = 0
-	styleMin          = styleFillColor
-	styleMax          = styleStrokeWidth
+	styleMin          = styleFillNone
+	styleMax          = styleTextAnchor
 )
 
 /////////////////////////////////////////////////////////////////////
@@ -97,6 +101,14 @@ func (e *Element) StrokeWidth(width float32) data.CanvasStyle {
 	return &styledef{Op: styleStrokeWidth, Width: width}
 }
 
+func (e *Element) FontSize(size float32, unit data.Unit) data.CanvasStyle {
+	return &styledef{Op: styleFontSize, Width: size, Unit: unit}
+}
+
+func (e *Element) TextAnchor(align data.TextAlign) data.CanvasStyle {
+	return &styledef{Op: styleTextAnchor, Align: align}
+}
+
 /////////////////////////////////////////////////////////////////////
 // STRINGIFY
 
@@ -114,6 +126,10 @@ func (f styleop) FlagString() string {
 		return "stroke-opacity"
 	case styleStrokeWidth:
 		return "stroke-width"
+	case styleFontSize:
+		return "font-size"
+	case styleTextAnchor:
+		return "text-anchor"
 	default:
 		return "[?? invalid styleop value]"
 	}
@@ -170,6 +186,10 @@ func (s *Style) DefString(op styleop, def *styledef) string {
 		if _, exists := s.defs[styleStrokeNone]; exists == false {
 			return FloatString(op, def.Opacity)
 		}
+	case styleFontSize:
+		return UnitString(op, def.Width, def.Unit)
+	case styleTextAnchor:
+		return TextAlignString(op, def.Align)
 	}
 	// By default return empty string
 	return ""
@@ -181,4 +201,12 @@ func ColorString(name styleop, value data.Color) string {
 
 func FloatString(name styleop, value float32) string {
 	return fmt.Sprintf("%v: %s", name, f32.String(value))
+}
+
+func UnitString(name styleop, value float32, unit data.Unit) string {
+	return fmt.Sprintf("%v: %s%s", name, f32.String(value), unit.String())
+}
+
+func TextAlignString(name styleop, value data.TextAlign) string {
+	return fmt.Sprintf("%v: %v", name, value)
 }
