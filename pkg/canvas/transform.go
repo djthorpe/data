@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/djthorpe/data"
+	"github.com/djthorpe/data/pkg/f32"
 )
 
 /////////////////////////////////////////////////////////////////////
@@ -76,31 +77,31 @@ func (op *transformdef) String() string {
 	switch op.Op {
 	case translate:
 		if op.X != 0 || op.Y != 0 {
-			return fmt.Sprintf("translate(%v)", string2(op.X, op.Y))
+			return fmt.Sprintf("translate(%v)", f32.String(op.X, op.Y))
 		}
 	case scale:
 		if op.W != 1.0 || op.H != 1.0 {
 			if op.W == op.H {
-				return fmt.Sprintf("scale(%v)", string1(op.W))
+				return fmt.Sprintf("scale(%v)", f32.String(op.W))
 			} else {
-				return fmt.Sprintf("scale(%v)", string2(op.W, op.H))
+				return fmt.Sprintf("scale(%v)", f32.String(op.W, op.H))
 			}
 		}
 	case rotate:
 		if op.Angle != 0 {
 			if op.X == 0 && op.Y == 0 {
-				return fmt.Sprintf("rotate(%v)", string1(op.Angle))
+				return fmt.Sprintf("rotate(%v)", f32.String(op.Angle))
 			} else {
-				return fmt.Sprintf("rotate(%v)", string3(op.Angle, op.X, op.Y))
+				return fmt.Sprintf("rotate(%v)", f32.String(op.Angle, op.X, op.Y))
 			}
 		}
 	case skewx:
 		if op.Angle != 0 {
-			return fmt.Sprintf("skewx(%v)", string1(op.Angle))
+			return fmt.Sprintf("skewx(%v)", f32.String(op.Angle))
 		}
 	case skewy:
 		if op.Angle != 0 {
-			return fmt.Sprintf("skewy(%v)", string1(op.Angle))
+			return fmt.Sprintf("skewy(%v)", f32.String(op.Angle))
 		}
 	}
 
@@ -116,23 +117,4 @@ func (t *Transform) String() string {
 		}
 	}
 	return strings.TrimSpace(str)
-}
-
-/////////////////////////////////////////////////////////////////////
-// PRIVATE METHODS
-
-func string1(x float32) string {
-	if float32(int64(x)) == x {
-		return fmt.Sprintf("%.0f", x)
-	} else {
-		return fmt.Sprintf("%f", x)
-	}
-}
-
-func string2(x, y float32) string {
-	return string1(x) + "," + string1(y)
-}
-
-func string3(x, y, z float32) string {
-	return string1(x) + "," + string1(y) + "," + string1(z)
 }

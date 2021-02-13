@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io"
 	"math"
+
+	f32 "github.com/djthorpe/data/pkg/f32"
 )
 
 /////////////////////////////////////////////////////////////////////
@@ -17,10 +19,6 @@ type Size struct {
 	W, H float32
 }
 
-type Color struct {
-	R, G, B uint8
-}
-
 type Unit int
 
 /////////////////////////////////////////////////////////////////////
@@ -28,6 +26,10 @@ type Unit int
 
 type Canvas interface {
 	CanvasGroup
+
+	// Get canvas properties
+	Origin() Point
+	Size() Size
 
 	// Set canvas properties
 	Title(string) Canvas
@@ -41,6 +43,7 @@ type Canvas interface {
 	Ellipse(Point, Size) CanvasElement
 	Path([]Point) CanvasElement
 	Line(Point, Point) CanvasElement
+	Rect(Point, Size) CanvasElement
 
 	// Transform primitives
 	Scale(Size) CanvasTransform
@@ -49,6 +52,13 @@ type Canvas interface {
 	RotateAround(float32, Point) CanvasTransform
 	SkewX(float32) CanvasTransform
 	SkewY(float32) CanvasTransform
+
+	// Style primitives
+	Fill(Color, float32) CanvasStyle
+	NoFill() CanvasStyle
+	Stroke(Color, float32) CanvasStyle
+	StrokeWidth(float32) CanvasStyle
+	NoStroke() CanvasStyle
 }
 
 type CanvasGroup interface {
@@ -87,16 +97,12 @@ var (
 	ZeroSize  = Size{0, 0}
 	ZeroPoint = Point{0, 0}
 	NilPoint  = Point{float32(math.NaN()), float32(math.NaN())}
+	NilSize   = Size{float32(math.NaN()), float32(math.NaN())}
 )
 
 var (
 	A4PortraitSize  = Size{594, 841}
 	A4LandscapeSize = Size{841, 594}
-)
-
-var (
-	White = Color{0xFF, 0xFF, 0xFF}
-	Black = Color{0x00, 0x00, 0x00}
 )
 
 /////////////////////////////////////////////////////////////////////
@@ -133,5 +139,5 @@ func (u Unit) String() string {
 // FUNCTIONS
 
 func (p Point) IsNil() bool {
-	return math.IsNaN(float64(p.X)) || math.IsNaN(float64(p.Y))
+	return f32.IsNaN(p.X) || f32.IsNaN(p.Y)
 }

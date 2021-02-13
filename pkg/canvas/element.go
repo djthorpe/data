@@ -18,6 +18,10 @@ type Element struct {
 	cdata     string
 	transform *Transform
 	style     *Style
+
+	// Canvas properties
+	origin data.Point
+	size   data.Size
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -97,9 +101,11 @@ func (e *Element) Transform(op ...data.CanvasTransform) data.CanvasElement {
 	return e
 }
 
-func (e *Element) Style(...data.CanvasStyle) data.CanvasElement {
+func (e *Element) Style(styles ...data.CanvasStyle) data.CanvasElement {
 	if e.style == nil {
-		e.style = NewStyle()
+		e.style = NewStyle(styles)
+	} else {
+		e.style.Append(styles)
 	}
 	return e
 }

@@ -28,6 +28,11 @@ func NewCanvas(size data.Size, units data.Unit) data.Canvas {
 	if h != "" && h != "0" {
 		c.Attr("height", h)
 	}
+
+	// Set origin and size
+	c.origin = data.Point{0, 0}
+	c.size = size
+
 	// Set the root element
 	c.root = c
 
@@ -46,6 +51,14 @@ func (e *Element) Title(value string) data.Canvas {
 func (e *Element) Version(value string) data.Canvas {
 	e.Attr("version", value)
 	return e
+}
+
+func (e *Element) Origin() data.Point {
+	return e.root.origin
+}
+
+func (e *Element) Size() data.Size {
+	return e.root.size
 }
 
 func (e *Element) Circle(centre data.Point, radius float32) data.CanvasElement {
@@ -73,6 +86,16 @@ func (e *Element) Line(p1, p2 data.Point) data.CanvasElement {
 	c.Attr("y1", p1.Y)
 	c.Attr("x2", p2.X)
 	c.Attr("y2", p2.Y)
+	e.addChild(c)
+	return c
+}
+
+func (e *Element) Rect(pt data.Point, sz data.Size) data.CanvasElement {
+	c := NewElement("rect", "", e.root)
+	c.Attr("x", pt.X)
+	c.Attr("y", pt.Y)
+	c.Attr("width", sz.W)
+	c.Attr("height", sz.H)
 	e.addChild(c)
 	return c
 }

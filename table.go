@@ -2,9 +2,10 @@ package data
 
 import (
 	"io"
-	"math"
 	"strings"
 	"time"
+
+	f32 "github.com/djthorpe/data/pkg/f32"
 )
 
 /////////////////////////////////////////////////////////////////////
@@ -202,37 +203,7 @@ func (t Type) Type() (Type, bool) {
 // Float32 returns a float value from untyped or returns
 // NaN otherwise
 func Float32(v interface{}) float32 {
-	if v == nil {
-		return float32(math.NaN())
-	}
-	switch v_ := v.(type) {
-	case float32:
-		return v_
-	case float64:
-		return float32(v_)
-	case uint:
-		return float32(v_)
-	case uint8:
-		return float32(v_)
-	case uint16:
-		return float32(v_)
-	case uint32:
-		return float32(v_)
-	case uint64:
-		return float32(v_)
-	case int:
-		return float32(v_)
-	case int8:
-		return float32(v_)
-	case int16:
-		return float32(v_)
-	case int32:
-		return float32(v_)
-	case int64:
-		return float32(v_)
-	default:
-		return float32(math.NaN())
-	}
+	return f32.Cast(v)
 }
 
 /////////////////////////////////////////////////////////////////////
