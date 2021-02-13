@@ -2,7 +2,6 @@ package viz
 
 import (
 	"fmt"
-	"math"
 
 	"github.com/djthorpe/data"
 )
@@ -11,7 +10,8 @@ import (
 // TYPES
 
 type scale struct {
-	name string
+	name     string
+	min, max float32
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -22,15 +22,18 @@ type scale struct {
 
 // NewScale returns an X or Y axis scale given minimum
 // and maximum values that need to be included on the scale
+// currently a linear scale
 func NewScale(name string, min, max float32) data.Scale {
 	this := new(scale)
 	this.name = name
 
-	// Calculate scale min and max
-	minl := int(math.Floor(math.Log10(float64(min))))
-	maxl := int(math.Ceil(math.Log10(float64(max))))
-	fmt.Printf("min=%f log=%v pow=%f\n", min, minl, math.Pow10(minl-1))
-	fmt.Printf("max=%f log=%v pow=%f\n", max, maxl, math.Pow10(maxl-1))
+	// Check parameters
+	if isNaN(min) || isNaN(max) || min > max {
+		return nil
+	} else {
+		this.min = min
+		this.max = max
+	}
 
 	return this
 }
@@ -40,4 +43,28 @@ func NewScale(name string, min, max float32) data.Scale {
 
 func (p *scale) Name() string {
 	return p.name
+}
+
+func (p *scale) Min() float32 {
+	return p.min
+}
+
+func (p *scale) Max() float32 {
+	return p.max
+}
+
+func (p *scale) WritePath(data.Canvas) data.CanvasGroup {
+	return c.Group(
+		c.Line(data.Point{p.min, 0}, data.Point{p.max, 0}),
+	)
+}
+
+/////////////////////////////////////////////////////////////////////
+// STRINGIFY
+
+func (p *scale) String() string {
+	str := "<scale"
+	str += fmt.Sprintf(" min=%f", p.min)
+	str += fmt.Sprintf(" max=%f", p.max)
+	return str + ">"
 }

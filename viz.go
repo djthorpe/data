@@ -56,14 +56,18 @@ type Labels interface {
 type Scale interface {
 	// Return name associated with the scale
 	Name() string
+
+	// Return minimum represented value on scale
+	Min() float32
+
+	// Return maximum represented value on scale
+	Max() float32
+
+	// Write scale to canvas
+	WritePath(Canvas) CanvasGroup
 }
 
 /*
-type Series interface {
-}
-
-
-	Series
 
 	// Min returns the minimum bounding point
 	Min() Point

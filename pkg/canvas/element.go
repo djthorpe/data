@@ -11,11 +11,13 @@ import (
 // TYPES
 
 type Element struct {
-	XMLName  xml.Name
-	Attrs    []xml.Attr
-	root     *Element
-	children []*Element
-	cdata    string
+	XMLName   xml.Name
+	XMLAttrs  []xml.Attr
+	root      *Element
+	children  []*Element
+	cdata     string
+	transform *Transform
+	style     *Style
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -39,7 +41,31 @@ func (e *Element) Desc(value string) data.CanvasGroup {
 
 func (e *Element) Attr(name string, value interface{}) {
 	attr := xml.Attr{xml.Name{Local: name}, fmt.Sprint(value)}
-	e.Attrs = append(e.Attrs, attr)
+	e.XMLAttrs = append(e.XMLAttrs, attr)
+}
+
+func (e *Element) Attrs() []xml.Attr {
+	attrs := make([]xml.Attr, len(e.XMLAttrs))
+	for i, attr := range e.XMLAttrs {
+		attrs[i] = attr
+	}
+	if e.transform != nil {
+		if value := e.transform.String(); value != "" {
+			attrs = append(attrs, xml.Attr{
+				Name:  xml.Name{Local: "transform"},
+				Value: value,
+			})
+		}
+	}
+	if e.style != nil {
+		if value := e.style.String(); value != "" {
+			attrs = append(attrs, xml.Attr{
+				Name:  xml.Name{Local: "style"},
+				Value: value,
+			})
+		}
+	}
+	return attrs
 }
 
 func (e *Element) Group(children ...data.CanvasElement) data.CanvasGroup {
@@ -49,15 +75,33 @@ func (e *Element) Group(children ...data.CanvasElement) data.CanvasGroup {
 		e.removeChild(node.(*Element))
 		g.addChild(node.(*Element))
 	}
+	return g
+}
+
+func (e *Element) Id(value string) data.CanvasElement {
+	e.Attr("id", value)
 	return e
 }
 
-func (e *Element) Id(value string) {
-	e.Attr("id", value)
+func (e *Element) Class(value string) data.CanvasElement {
+	e.Attr("class", value)
+	return e
 }
 
-func (e *Element) Class(value string) {
-	e.Attr("class", value)
+func (e *Element) Transform(op ...data.CanvasTransform) data.CanvasElement {
+	if e.transform == nil {
+		e.transform = NewTransform(op)
+	} else {
+		e.transform.op = append(e.transform.op, op...)
+	}
+	return e
+}
+
+func (e *Element) Style(...data.CanvasStyle) data.CanvasElement {
+	if e.style == nil {
+		e.style = NewStyle()
+	}
+	return e
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -65,8 +109,14 @@ func (e *Element) Class(value string) {
 
 func (e *Element) String() string {
 	str := "<" + e.XMLName.Local
-	for _, attr := range e.Attrs {
+	for _, attr := range e.XMLAttrs {
 		str += fmt.Sprintf(" %v=%q", attr.Name.Local, attr.Value)
+	}
+	if e.transform != nil {
+		str += fmt.Sprintf(" transform=%q", e.transform.String())
+	}
+	if e.style != nil {
+		str += fmt.Sprintf(" style=%q", e.style.String())
 	}
 	if len(e.children) > 0 {
 		str += " <"
@@ -85,10 +135,10 @@ func (e *Element) String() string {
 
 func (e *Element) MarshalXML(x *xml.Encoder, start xml.StartElement) error {
 	switch e.XMLName.Local {
-	case "svg", "g":
+	case "svg", "g": // Cases with children
 		x.EncodeToken(xml.StartElement{
 			Name: e.XMLName,
-			Attr: e.Attrs,
+			Attr: e.Attrs(),
 		})
 		for _, c := range e.children {
 			if c != nil {
@@ -97,16 +147,17 @@ func (e *Element) MarshalXML(x *xml.Encoder, start xml.StartElement) error {
 		}
 		x.EncodeToken(xml.EndElement{Name: e.XMLName})
 		return nil
-	case "circle", "rect", "path":
+	case "circle", "rect", "path", "line": // Cases without children
 		x.EncodeToken(xml.StartElement{
 			Name: e.XMLName,
-			Attr: e.Attrs,
+			Attr: e.Attrs(),
 		})
 		x.EncodeToken(xml.EndElement{Name: e.XMLName})
 		return nil
-	case "desc", "title":
+	case "desc", "title": // Cases with cdata
 		return x.EncodeElement(e.cdata, xml.StartElement{
 			Name: e.XMLName,
+			Attr: e.Attrs(),
 		})
 	default:
 		return data.ErrBadParameter.WithPrefix(e.XMLName.Local)

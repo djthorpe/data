@@ -40,21 +40,33 @@ type Canvas interface {
 	Circle(Point, float32) CanvasElement
 	Ellipse(Point, Size) CanvasElement
 	Path([]Point) CanvasElement
+	Line(Point, Point) CanvasElement
+
+	// Transform primitives
+	Scale(Size) CanvasTransform
+	Translate(Point) CanvasTransform
+	Rotate(float32) CanvasTransform
+	RotateAround(float32, Point) CanvasTransform
+	SkewX(float32) CanvasTransform
+	SkewY(float32) CanvasTransform
 }
 
 type CanvasGroup interface {
 	CanvasElement
+
 	Desc(string) CanvasGroup
 	Group(...CanvasElement) CanvasGroup
-	Scale(Point, Point) CanvasGroup
 }
 
 type CanvasElement interface {
-	Id(string)
-	Class(string)
+	Id(string) CanvasElement
+	Class(string) CanvasElement
+	Style(...CanvasStyle) CanvasElement
+	Transform(...CanvasTransform) CanvasElement
 }
 
 type CanvasStyle interface{}
+type CanvasTransform interface{}
 
 /////////////////////////////////////////////////////////////////////
 // CONSTANTS

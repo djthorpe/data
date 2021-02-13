@@ -38,11 +38,6 @@ func NewCanvas(size data.Size, units data.Unit) data.Canvas {
 /////////////////////////////////////////////////////////////////////
 // METHODS
 
-func (e *Element) Scale(min, max data.Point) data.CanvasGroup {
-	fmt.Println("TODO:", min, max)
-	return e
-}
-
 func (e *Element) Title(value string) data.Canvas {
 	e.addChild(NewElement("title", value, e.root))
 	return e
@@ -68,6 +63,16 @@ func (e *Element) Ellipse(centre data.Point, radius data.Size) data.CanvasElemen
 	c.Attr("cy", centre.Y)
 	c.Attr("rx", radius.W)
 	c.Attr("ry", radius.H)
+	e.addChild(c)
+	return c
+}
+
+func (e *Element) Line(p1, p2 data.Point) data.CanvasElement {
+	c := NewElement("line", "", e.root)
+	c.Attr("x1", p1.X)
+	c.Attr("y1", p1.Y)
+	c.Attr("x2", p2.X)
+	c.Attr("y2", p2.Y)
 	e.addChild(c)
 	return c
 }
