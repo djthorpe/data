@@ -75,7 +75,16 @@ func (e *Element) SetSize(sz data.Size) {
 /////////////////////////////////////////////////////////////////////
 // WRITE CANVAS
 
-func (e *Element) Write(w io.Writer) error {
+func (e *Element) Write(fmt data.Writer, w io.Writer) error {
+	switch fmt {
+	case data.SVG:
+		return e.writeSVG(w)
+	default:
+		return data.ErrNotImplemented
+	}
+}
+
+func (e *Element) writeSVG(w io.Writer) error {
 	w.Write([]byte(xml.Header))
 	enc := xml.NewEncoder(w)
 	enc.Indent("", "  ")

@@ -23,6 +23,7 @@ type (
 	LineCap   int
 	LineJoin  int
 	FillRule  int
+	Writer    int
 )
 
 /////////////////////////////////////////////////////////////////////
@@ -41,8 +42,8 @@ type Canvas interface {
 	Title(string) Canvas
 	Version(string) Canvas
 
-	// Write SVG
-	Write(w io.Writer) error
+	// Write to data stream
+	Write(Writer, io.Writer) error
 
 	// Drawing primitives
 	Circle(Point, float32) CanvasElement
@@ -118,6 +119,11 @@ const (
 	PT
 	EX
 	EM
+)
+
+const (
+	SVG Writer = iota
+	// TODO: PDF
 )
 
 const (

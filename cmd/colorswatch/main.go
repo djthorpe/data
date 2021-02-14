@@ -81,5 +81,5 @@ func main() {
 	}
 
 	// Output as SVG
-	c.Write(os.Stdout)
+	c.Write(data.SVG, os.Stdout)
 }

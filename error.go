@@ -18,6 +18,7 @@ const (
 	ErrDuplicateEntry
 	ErrInternalAppError
 	ErrSkipTransform
+	ErrNotImplemented
 )
 
 /////////////////////////////////////////////////////////////////////
@@ -42,6 +43,8 @@ func (e Error) Error() string {
 		return "ErrInternalAppError"
 	case ErrSkipTransform:
 		return "ErrSkipTransform"
+	case ErrNotImplemented:
+		return "ErrNotImplemented"
 	default:
 		return "[?? Invalid Error value]"
 	}
