@@ -1,5 +1,11 @@
 package main
 
+/*
+	Read and merge CSV files and output result to terminal as
+	ASCII table, or as CSV or SQL statements. Demonstrates
+	reading and writing tables.
+*/
+
 import (
 	"flag"
 	"fmt"
@@ -17,16 +23,17 @@ var (
 )
 
 func main() {
-	inOpts := []data.TableOpt{}
-	outOpts := []data.TableOpt{}
-
 	flag.Parse()
 	if flag.NArg() == 0 {
 		fmt.Fprintln(os.Stderr, "Missing filename argument")
 		os.Exit(-1)
 	}
 
+	// Create table for data and set options for input and output
+	// based on command line flags.
 	t := table.NewTable()
+	inOpts := []data.TableOpt{}
+	outOpts := []data.TableOpt{}
 
 	// Set options
 	if *flagDelimiter != "" {

@@ -1,5 +1,12 @@
 package main
 
+/*
+	Create an SVG file which includes all the named colors
+	on an A4 Landscape size. Demonstrates creating SVG files
+	and calculating numerical difference between two colors
+	in order to ensure text visibility
+*/
+
 import (
 	"os"
 

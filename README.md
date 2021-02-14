@@ -3,6 +3,7 @@
 This repository contains various data extraction, transformation processing and visualization tools. Currently it contains the following:
 
   * `data.Table` provides you with a way to ingest, transform and process data tables in comma-separated value format and output in CSV, ASCII and SQL formats.
+  * `data.Canvas` provides a drawing canvas on which graphics primitives such as lines, circles, text and rectangles can be placed. Additionally transformation, grouping and stylizing of primitives can be applied. Canvases can currently be written in SVG format, the intention is to also allow rendering using OpenGL later.
 
 ## Tables
 
@@ -196,3 +197,8 @@ func main() {
 ```
 
 A similar transformation function can be defined on output, for converting a native format to a string.
+
+## Canvas
+
+You can create canvas objects by using the `NewCanvas` method and then create primitives and groups on the canvas before writing out the canvas, or rendering it.
+

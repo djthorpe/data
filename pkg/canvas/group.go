@@ -9,7 +9,7 @@ func (e *Element) Group(children ...data.CanvasElement) data.CanvasGroup {
 	g := NewElement("g", "", e.root)
 	e.addChild(g)
 	for _, node := range children {
-		e.removeChild(node.(*Element))
+		e.root.removeChild(node.(*Element))
 		g.addChild(node.(*Element))
 	}
 	return g

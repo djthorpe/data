@@ -25,6 +25,8 @@ type styledef struct {
 	Width   float32
 	Unit    data.Unit
 	Align   data.TextAlign
+	Cap     data.LineCap
+	Join    data.LineJoin
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -40,9 +42,12 @@ const (
 	styleStrokeWidth
 	styleFontSize
 	styleTextAnchor
+	styleLineCap
+	styleLineJoin
+	styleMiterLimit
 	styleNone styleop = 0
 	styleMin          = styleFillNone
-	styleMax          = styleTextAnchor
+	styleMax          = styleMiterLimit
 )
 
 /////////////////////////////////////////////////////////////////////
@@ -98,7 +103,11 @@ func (e *Element) Stroke(color data.Color, opacity float32) data.CanvasStyle {
 }
 
 func (e *Element) StrokeWidth(width float32) data.CanvasStyle {
-	return &styledef{Op: styleStrokeWidth, Width: width}
+	if width == 0 {
+		return e.NoStroke()
+	} else {
+		return &styledef{Op: styleStrokeWidth, Width: width}
+	}
 }
 
 func (e *Element) FontSize(size float32, unit data.Unit) data.CanvasStyle {
@@ -107,6 +116,18 @@ func (e *Element) FontSize(size float32, unit data.Unit) data.CanvasStyle {
 
 func (e *Element) TextAnchor(align data.TextAlign) data.CanvasStyle {
 	return &styledef{Op: styleTextAnchor, Align: align}
+}
+
+func (e *Element) LineCap(cap data.LineCap) data.CanvasStyle {
+	return &styledef{Op: styleLineCap, Cap: cap}
+}
+
+func (e *Element) LineJoin(join data.LineJoin) data.CanvasStyle {
+	return &styledef{Op: styleLineJoin, Join: join}
+}
+
+func (e *Element) MiterLimit(limit float32) data.CanvasStyle {
+	return &styledef{Op: styleMiterLimit, Width: limit}
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -130,6 +151,12 @@ func (f styleop) FlagString() string {
 		return "font-size"
 	case styleTextAnchor:
 		return "text-anchor"
+	case styleLineCap:
+		return "stroke-linecap"
+	case styleLineJoin:
+		return "stroke-linejoin"
+	case styleMiterLimit:
+		return "stroke-miterlimit"
 	default:
 		return "[?? invalid styleop value]"
 	}
@@ -184,12 +211,24 @@ func (s *Style) DefString(op styleop, def *styledef) string {
 		}
 	case styleStrokeWidth:
 		if _, exists := s.defs[styleStrokeNone]; exists == false {
-			return FloatString(op, def.Opacity)
+			return FloatString(op, def.Width)
 		}
 	case styleFontSize:
 		return UnitString(op, def.Width, def.Unit)
 	case styleTextAnchor:
-		return TextAlignString(op, def.Align)
+		return StyleString(op, def.Cap)
+	case styleLineCap:
+		if _, exists := s.defs[styleStrokeNone]; exists == false {
+			return StyleString(op, def.Cap)
+		}
+	case styleLineJoin:
+		if _, exists := s.defs[styleStrokeNone]; exists == false {
+			return StyleString(op, def.Cap)
+		}
+	case styleMiterLimit:
+		if _, exists := s.defs[styleStrokeNone]; exists == false {
+			return FloatString(op, def.Width)
+		}
 	}
 	// By default return empty string
 	return ""
@@ -207,6 +246,6 @@ func UnitString(name styleop, value float32, unit data.Unit) string {
 	return fmt.Sprintf("%v: %s%s", name, f32.String(value), unit.String())
 }
 
-func TextAlignString(name styleop, value data.TextAlign) string {
+func StyleString(name styleop, value interface{}) string {
 	return fmt.Sprintf("%v: %v", name, value)
 }

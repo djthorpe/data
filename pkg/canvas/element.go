@@ -12,7 +12,7 @@ import (
 
 type Element struct {
 	XMLName   xml.Name
-	XMLAttrs  []xml.Attr
+	XMLAttrs  []*xml.Attr
 	root      *Element
 	children  []*Element
 	cdata     string
@@ -43,15 +43,30 @@ func (e *Element) Desc(value string) data.CanvasGroup {
 	return e
 }
 
-func (e *Element) Attr(name string, value interface{}) {
-	attr := xml.Attr{xml.Name{Local: name}, fmt.Sprint(value)}
-	e.XMLAttrs = append(e.XMLAttrs, attr)
+func (e *Element) getAttr(name string) *xml.Attr {
+	for _, attr := range e.XMLAttrs {
+		if attr.Name.Local == name {
+			return attr
+		}
+	}
+	return nil
+}
+
+func (e *Element) Attr(name, value string) {
+	if attr := e.getAttr(name); attr == nil {
+		e.XMLAttrs = append(e.XMLAttrs, &xml.Attr{
+			Name:  xml.Name{Local: name},
+			Value: value,
+		})
+	} else {
+		attr.Value += " " + value
+	}
 }
 
 func (e *Element) Attrs() []xml.Attr {
 	attrs := make([]xml.Attr, len(e.XMLAttrs))
 	for i, attr := range e.XMLAttrs {
-		attrs[i] = attr
+		attrs[i] = *attr
 	}
 	if e.transform != nil {
 		if value := e.transform.String(); value != "" {

@@ -19,8 +19,12 @@ type Size struct {
 	W, H float32
 }
 
-type Unit int
-type TextAlign int
+type (
+	Unit      int
+	TextAlign int
+	LineCap   int
+	LineJoin  int
+)
 
 /////////////////////////////////////////////////////////////////////
 // INTERFACES
@@ -42,10 +46,10 @@ type Canvas interface {
 	// Drawing primitives
 	Circle(Point, float32) CanvasElement
 	Ellipse(Point, Size) CanvasElement
-	Path([]Point) CanvasElement
 	Line(Point, Point) CanvasElement
 	Rect(Point, Size) CanvasElement
 	Text(Point, ...CanvasText) CanvasElement
+	Path([]Point) CanvasPath
 
 	// Transform primitives
 	Scale(Size) CanvasTransform
@@ -63,9 +67,19 @@ type Canvas interface {
 	NoStroke() CanvasStyle
 	FontSize(float32, Unit) CanvasStyle
 	TextAnchor(TextAlign) CanvasStyle
+	LineCap(LineCap) CanvasStyle
+	LineJoin(LineJoin) CanvasStyle
+	MiterLimit(float32) CanvasStyle
 
 	// Text primitives
 	Span(string) CanvasText
+}
+
+type CanvasElement interface {
+	Id(string) CanvasElement
+	Class(string) CanvasElement
+	Style(...CanvasStyle) CanvasElement
+	Transform(...CanvasTransform) CanvasElement
 }
 
 type CanvasGroup interface {
@@ -75,11 +89,14 @@ type CanvasGroup interface {
 	Group(...CanvasElement) CanvasGroup
 }
 
-type CanvasElement interface {
-	Id(string) CanvasElement
-	Class(string) CanvasElement
-	Style(...CanvasStyle) CanvasElement
-	Transform(...CanvasTransform) CanvasElement
+type CanvasPath interface {
+	CanvasElement
+
+	MoveTo(Point) CanvasPath
+	LineTo(Point) CanvasPath
+	QuadraticTo(pt, c Point) CanvasPath
+	CubicTo(pt, c1, c2 Point) CanvasPath
+	ClosePath() CanvasPath
 }
 
 type CanvasStyle interface{}
@@ -105,6 +122,20 @@ const (
 	Start TextAlign = iota
 	Middle
 	End
+)
+
+const (
+	CapButt LineCap = iota
+	CapRound
+	CapSquare
+)
+
+const (
+	JoinMiter LineJoin = iota
+	JoinMiterClip
+	JoinArcs
+	JoinRound
+	JoinBevel
 )
 
 var (
@@ -159,6 +190,36 @@ func (u Unit) String() string {
 		return "em"
 	default:
 		return ""
+	}
+}
+
+func (c LineCap) String() string {
+	switch c {
+	case CapRound:
+		return "round"
+	case CapSquare:
+		return "square"
+	case CapButt:
+		fallthrough
+	default:
+		return "butt"
+	}
+}
+
+func (j LineJoin) String() string {
+	switch j {
+	case JoinMiterClip:
+		return "miter-clip"
+	case JoinArcs:
+		return "arcs"
+	case JoinRound:
+		return "round"
+	case JoinBevel:
+		return "bevel"
+	case JoinMiter:
+		fallthrough
+	default:
+		return "miter"
 	}
 }
 
