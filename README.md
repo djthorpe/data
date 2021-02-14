@@ -200,5 +200,63 @@ A similar transformation function can be defined on output, for converting a nat
 
 ## Canvas
 
-You can create canvas objects by using the `NewCanvas` method and then create primitives and groups on the canvas before writing out the canvas, or rendering it.
+You can create canvas objects by using the `NewCanvas` method and then create shape primitives, styles, transforms and groups on the canvas before writing out the canvas to render it. Currently SVG is supported for rendering. For example, the following code writes out a canvas as SVG of A4 paper size:
+
+```go
+package main
+
+import (
+	"os"
+	"github.com/djthorpe/data"
+	"github.com/djthorpe/data/pkg/canvas"
+	"github.com/djthorpe/data/pkg/color"
+)
+
+func main() {
+	c := canvas.NewCanvas(data.A4LandscapeSize, data.MM)
+
+	c.Title("Canvas Document")
+	c.Desc("SVG Document output")
+	c.Rect(c.Origin(), c.Size()).Style(
+		c.Fill(color.Ivory, 1.0),
+	)
+	c.Write(data.SVG, os.Stdout)
+}
+```
+
+Canvas can consist of:
+
+  * `data.CanvasElement`, which are primitive drawing elements like circles, text, lines, paths and text;
+  * `data.CanvasGroup`, which are groups of elements.
+  
+Any element or group can have __transforms__ applied (for example, scaling, rotating and translation) and
+__style__ (for example, color or opacity).
+
+### Creating a Canvas
+
+TODO
+
+### Adding shape primitives
+
+TODO
+
+### Styling 
+
+TODO
+
+### Transformation 
+
+TODO
+
+### Grouping 
+
+TODO
+
+### Rendering
+
+TODO
+
+
+
+
 
