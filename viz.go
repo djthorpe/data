@@ -66,24 +66,3 @@ type Scale interface {
 	// Write scale to canvas
 	WritePath(Canvas) CanvasGroup
 }
-
-/*
-
-	// Min returns the minimum bounding point
-	Min() Point
-
-	// Max returns the maximum bounding point
-	Max() Point
-
-	// Append point
-	Append(Point)
-
-	// Read points from a table, the iterator function can return
-	// ErrSkipTransform if a returned point can be discarded
-	Read(Table, PointIteratorFunc) error
-
-	// Write points as path to canvas and return the group
-	WritePath(Canvas) CanvasGroup
-}
-
-*/

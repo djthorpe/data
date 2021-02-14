@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"io"
 	"math"
-
-	f32 "github.com/djthorpe/data/pkg/f32"
 )
 
 /////////////////////////////////////////////////////////////////////
@@ -24,6 +22,7 @@ type (
 	TextAlign int
 	LineCap   int
 	LineJoin  int
+	FillRule  int
 )
 
 /////////////////////////////////////////////////////////////////////
@@ -64,6 +63,7 @@ type Canvas interface {
 	// Style primitives
 	Fill(Color, float32) CanvasStyle
 	NoFill() CanvasStyle
+	FillRule(FillRule) CanvasStyle
 	Stroke(Color, float32) CanvasStyle
 	StrokeWidth(float32) CanvasStyle
 	NoStroke() CanvasStyle
@@ -124,6 +124,11 @@ const (
 	Start TextAlign = iota
 	Middle
 	End
+)
+
+const (
+	NonZero FillRule = iota
+	EvenOdd
 )
 
 const (
@@ -230,9 +235,13 @@ func (j LineJoin) String() string {
 	}
 }
 
-/////////////////////////////////////////////////////////////////////
-// FUNCTIONS
-
-func (p Point) IsNil() bool {
-	return f32.IsNaN(p.X) || f32.IsNaN(p.Y)
+func (r FillRule) String() string {
+	switch r {
+	case EvenOdd:
+		return "evenodd"
+	case NonZero:
+		fallthrough
+	default:
+		return "nonzero"
+	}
 }

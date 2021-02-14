@@ -6,6 +6,7 @@ import (
 
 	"github.com/djthorpe/data"
 	"github.com/djthorpe/data/pkg/f32"
+	"github.com/djthorpe/data/pkg/geom"
 )
 
 /////////////////////////////////////////////////////////////////////
@@ -62,7 +63,7 @@ func (e *Element) Size() data.Size {
 }
 
 func (e *Element) SetOrigin(pt data.Point) {
-	if pt.IsNil() == false {
+	if geom.IsNilPoint(pt) == false {
 		e.root.origin = pt
 	}
 }

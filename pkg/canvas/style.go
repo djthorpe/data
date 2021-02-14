@@ -27,6 +27,7 @@ type styledef struct {
 	Align   data.TextAlign
 	Cap     data.LineCap
 	Join    data.LineJoin
+	Rule    data.FillRule
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -45,9 +46,10 @@ const (
 	styleLineCap
 	styleLineJoin
 	styleMiterLimit
+	styleFillRule
 	styleNone styleop = 0
 	styleMin          = styleFillNone
-	styleMax          = styleMiterLimit
+	styleMax          = styleFillRule
 )
 
 /////////////////////////////////////////////////////////////////////
@@ -98,6 +100,10 @@ func (e *Element) Fill(color data.Color, opacity float32) data.CanvasStyle {
 	return &styledef{Op: styleFillColor | styleFillOpacity, Color: color, Opacity: opacity}
 }
 
+func (e *Element) FillRule(rule data.FillRule) data.CanvasStyle {
+	return &styledef{Op: styleFillRule, Rule: rule}
+}
+
 func (e *Element) Stroke(color data.Color, opacity float32) data.CanvasStyle {
 	return &styledef{Op: styleStrokeColor | styleStrokeOpacity, Color: color, Opacity: opacity}
 }
@@ -139,6 +145,8 @@ func (f styleop) FlagString() string {
 		return "none"
 	case styleFillNone, styleFillColor:
 		return "fill"
+	case styleFillRule:
+		return "fill-rule"
 	case styleStrokeNone, styleStrokeColor:
 		return "stroke"
 	case styleFillOpacity:
@@ -200,6 +208,10 @@ func (s *Style) DefString(op styleop, def *styledef) string {
 	case styleFillOpacity:
 		if _, exists := s.defs[styleFillNone]; exists == false {
 			return FloatString(op, def.Opacity)
+		}
+	case styleFillRule:
+		if _, exists := s.defs[styleFillNone]; exists == false {
+			return StyleString(op, def.Rule)
 		}
 	case styleStrokeColor:
 		if _, exists := s.defs[styleStrokeNone]; exists == false {

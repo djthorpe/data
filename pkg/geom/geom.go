@@ -9,6 +9,11 @@ import (
 /////////////////////////////////////////////////////////////////////
 // METHODS
 
+// IsNilPoint returns true if either X or Y represent NaN
+func IsNilPoint(pt data.Point) bool {
+	return f32.IsNaN(pt.X) || f32.IsNaN(pt.Y)
+}
+
 // Return the centre point in a rectangle
 func CentrePoint(pt data.Point, sz data.Size) data.Point {
 	return data.Point{
