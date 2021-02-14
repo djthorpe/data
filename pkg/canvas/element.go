@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/djthorpe/data"
+	"github.com/djthorpe/data/pkg/f32"
 )
 
 /////////////////////////////////////////////////////////////////////
@@ -83,6 +84,17 @@ func (e *Element) Attrs() []xml.Attr {
 				Value: value,
 			})
 		}
+	}
+	if e.size != data.ZeroSize {
+		attrs = append(attrs, xml.Attr{
+			Name: xml.Name{Local: "viewBox"},
+			Value: fmt.Sprint(
+				f32.String(e.origin.X), " ",
+				f32.String(e.origin.Y), " ",
+				f32.String(f32.Abs(e.size.W)), " ",
+				f32.String(f32.Abs(e.size.H)),
+			),
+		})
 	}
 	return attrs
 }

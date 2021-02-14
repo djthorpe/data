@@ -2,10 +2,10 @@ package canvas
 
 import (
 	"encoding/xml"
-	"fmt"
 	"io"
 
 	"github.com/djthorpe/data"
+	"github.com/djthorpe/data/pkg/f32"
 )
 
 /////////////////////////////////////////////////////////////////////
@@ -28,7 +28,6 @@ func NewCanvas(size data.Size, units data.Unit) data.Canvas {
 	if h != "" && h != "0" {
 		c.Attr("height", h)
 	}
-	c.Attr("viewBox", fmt.Sprintf("0 0 %v %v", size.W, size.H))
 
 	// Set origin and size
 	c.origin = data.Point{0, 0}
@@ -60,6 +59,16 @@ func (e *Element) Origin() data.Point {
 
 func (e *Element) Size() data.Size {
 	return e.root.size
+}
+
+func (e *Element) SetOrigin(pt data.Point) {
+	if pt.IsNil() == false {
+		e.root.origin = pt
+	}
+}
+
+func (e *Element) SetSize(sz data.Size) {
+	e.root.size = data.Size{f32.Abs(sz.W), f32.Abs(sz.H)}
 }
 
 /////////////////////////////////////////////////////////////////////

@@ -40,9 +40,12 @@ func main() {
 	}
 
 	// Create canvas
-	c := canvas.NewCanvas(data.A4PortraitSize, data.MM)
+	c := canvas.NewCanvas(data.LetterPortraitSize, data.MM)
 	c.Title("Tiger")
 	c.Desc("Parse instructions to create a complex SVG document")
+
+	// Set size in points 1mm = 0.3527pt (72 points per inch)
+	c.SetSize(geom.DivideSize(c.Size(), 0.3527))
 
 	// Create a group for rotation
 	g := c.Group()

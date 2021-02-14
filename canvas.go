@@ -32,9 +32,11 @@ type (
 type Canvas interface {
 	CanvasGroup
 
-	// Get canvas properties
+	// Get and set canvas viewbox
 	Origin() Point
 	Size() Size
+	SetOrigin(Point)
+	SetSize(Size)
 
 	// Set canvas properties
 	Title(string) Canvas
@@ -146,8 +148,13 @@ var (
 )
 
 var (
-	A4PortraitSize  = Size{594, 841}
-	A4LandscapeSize = Size{841, 594}
+	// Paper sizes in mm
+	A4PortraitSize      = Size{210, 297}
+	A4LandscapeSize     = Size{297, 210}
+	LetterPortraitSize  = Size{215.9, 279.4}
+	LetterLandscapeSize = Size{279.4, 215.9}
+	LegalPortraitSize   = Size{215.9, 355.6}
+	LegalLandscapeSize  = Size{355.6, 215.9}
 )
 
 /////////////////////////////////////////////////////////////////////
