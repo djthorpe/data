@@ -30,13 +30,12 @@ type (
 // INTERFACES
 
 type Canvas interface {
-	CanvasGroup
+	//CanvasGroup
 
 	// Get and set canvas viewbox
 	Origin() Point
 	Size() Size
-	SetOrigin(Point)
-	SetSize(Size)
+	SetViewBox(Point, Size) error
 
 	// Set canvas properties
 	Title(string) Canvas
@@ -45,37 +44,39 @@ type Canvas interface {
 	// Write to data stream
 	Write(Writer, io.Writer) error
 
-	// Drawing primitives
-	Circle(Point, float32) CanvasElement
-	Ellipse(Point, Size) CanvasElement
-	Line(Point, Point) CanvasElement
-	Rect(Point, Size) CanvasElement
-	Text(Point, ...CanvasText) CanvasElement
-	Path([]Point) CanvasPath
+	/*
+		// Drawing primitives
+		Circle(Point, float32) CanvasElement
+		Ellipse(Point, Size) CanvasElement
+		Line(Point, Point) CanvasElement
+		Rect(Point, Size) CanvasElement
+		Text(Point, ...CanvasText) CanvasElement
+		Path([]Point) CanvasPath
 
-	// Transform primitives
-	Scale(Size) CanvasTransform
-	Translate(Point) CanvasTransform
-	Rotate(float32) CanvasTransform
-	RotateAround(float32, Point) CanvasTransform
-	SkewX(float32) CanvasTransform
-	SkewY(float32) CanvasTransform
+		// Transform primitives
+		Scale(Size) CanvasTransform
+		Translate(Point) CanvasTransform
+		Rotate(float32) CanvasTransform
+		RotateAround(float32, Point) CanvasTransform
+		SkewX(float32) CanvasTransform
+		SkewY(float32) CanvasTransform
 
-	// Style primitives
-	Fill(Color, float32) CanvasStyle
-	NoFill() CanvasStyle
-	FillRule(FillRule) CanvasStyle
-	Stroke(Color, float32) CanvasStyle
-	StrokeWidth(float32) CanvasStyle
-	NoStroke() CanvasStyle
-	FontSize(float32, Unit) CanvasStyle
-	TextAnchor(TextAlign) CanvasStyle
-	LineCap(LineCap) CanvasStyle
-	LineJoin(LineJoin) CanvasStyle
-	MiterLimit(float32) CanvasStyle
+		// Style primitives
+		Fill(Color, float32) CanvasStyle
+		NoFill() CanvasStyle
+		FillRule(FillRule) CanvasStyle
+		Stroke(Color, float32) CanvasStyle
+		StrokeWidth(float32) CanvasStyle
+		NoStroke() CanvasStyle
+		FontSize(float32, Unit) CanvasStyle
+		TextAnchor(TextAlign) CanvasStyle
+		LineCap(LineCap) CanvasStyle
+		LineJoin(LineJoin) CanvasStyle
+		MiterLimit(float32) CanvasStyle
 
-	// Text primitives
-	Span(string) CanvasText
+		// Text primitives
+		Span(string) CanvasText
+	*/
 }
 
 type CanvasElement interface {

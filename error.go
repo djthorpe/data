@@ -19,6 +19,7 @@ const (
 	ErrInternalAppError
 	ErrSkipTransform
 	ErrNotImplemented
+	ErrNotFound
 )
 
 /////////////////////////////////////////////////////////////////////
@@ -45,6 +46,8 @@ func (e Error) Error() string {
 		return "ErrSkipTransform"
 	case ErrNotImplemented:
 		return "ErrNotImplemented"
+	case ErrNotFound:
+		return "ErrNotFound"
 	default:
 		return "[?? Invalid Error value]"
 	}

@@ -111,6 +111,11 @@ func NaN() float32 {
 
 // String returns values delimited by commas as a string
 func String(values ...float32) string {
+	return Join(values, ",")
+}
+
+// Join returns a series of values separated with a string
+func Join(values []float32, sep string) string {
 	str := ""
 
 	// Deal with 0 and 1 cases
@@ -122,9 +127,9 @@ func String(values ...float32) string {
 
 	// Concatenate values
 	for _, value := range values {
-		str += string1(value) + ","
+		str += string1(value) + sep
 	}
-	return strings.TrimSuffix(str, ",")
+	return strings.TrimSuffix(str, sep)
 }
 
 // Return integer form or decimal form

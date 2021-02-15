@@ -8,6 +8,19 @@ type SeriesIteratorFunc func(int, []interface{}) ([]interface{}, error)
 /////////////////////////////////////////////////////////////////////
 // INTERFACES
 
+type Viz interface {
+	// Draw a grid on X axis with major & minor divisions,
+	// use zero for no major and/or minor
+	XGrid(int, int) VizGroup
+
+	// Draw a grid on Y axis with major & minor divisions
+	YGrid(int, int) VizGroup
+}
+
+type VizGroup interface {
+	CanvasGroup
+}
+
 type Series interface {
 	// Read series from a table, the iterator function can return
 	// ErrSkipTransform if a returned values can be discarded. The
