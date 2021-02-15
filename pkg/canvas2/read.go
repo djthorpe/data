@@ -10,6 +10,9 @@ import (
 	"github.com/djthorpe/data/pkg/dom"
 )
 
+/////////////////////////////////////////////////////////////////////
+// CONSTANTS
+
 var (
 	tags = map[xml.Name]data.DOMValidateNodeFunc{
 		{data.XmlNamespaceSVG, "svg"}:   tagSVG,
@@ -19,6 +22,9 @@ var (
 		{data.XmlNamespaceSVG, "desc"}:  tagDesc,
 	}
 )
+
+/////////////////////////////////////////////////////////////////////
+// PUBLIC METHODS
 
 func Read(fmt data.Writer, r io.Reader) (data.Canvas, error) {
 	this := new(Canvas)
@@ -35,6 +41,9 @@ func Read(fmt data.Writer, r io.Reader) (data.Canvas, error) {
 	// Return success
 	return this, nil
 }
+
+/////////////////////////////////////////////////////////////////////
+// PRIVATE METHODS
 
 func (this *Canvas) readSVG(r io.Reader) error {
 	if document, err := dom.ReadEx(r, DOMOptions, this.validateSVG); err != nil {
