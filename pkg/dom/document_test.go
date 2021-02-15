@@ -3,6 +3,7 @@ package dom_test
 import (
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/djthorpe/data"
@@ -262,4 +263,49 @@ func Test_Document_007(t *testing.T) {
 	} else {
 		t.Log("\n" + fmt.Sprint(document))
 	}
+}
+
+func Test_Document_008(t *testing.T) {
+	d := dom.NewDocument("doc", 0)
+	if d == nil {
+		t.Fatal("Unexpected nil return from NewDocument")
+	}
+	if comment := d.CreateComment("comment"); comment == nil {
+		t.Error("Unexpected nil return from CreateElement")
+	} else if err := d.AddChild(comment); err != nil {
+		t.Error(err)
+	}
+
+	// Check output
+	if str := fmt.Sprint(d); str != "<doc><!--comment--></doc>" {
+		t.Error("Unexpected: ", str)
+	}
+
+	// Output
+	t.Log("\n" + fmt.Sprint(d))
+}
+
+func Test_Document_009(t *testing.T) {
+	d := dom.NewDocument("doc", 0)
+	if d == nil {
+		t.Fatal("Unexpected nil return from NewDocument")
+	}
+	if comment := d.CreateComment("comment"); comment == nil {
+		t.Error("Unexpected nil return from CreateElement")
+	} else if err := d.AddChild(comment); err != nil {
+		t.Error(err)
+	}
+
+	// Check output
+	if str := fmt.Sprint(d); str != "<doc><!--comment--></doc>" {
+		t.Error("Unexpected: ", str)
+	} else if _, err := dom.ReadEx(strings.NewReader(str), 0, func(node data.Node) error {
+		t.Log("Validate=", node)
+		return nil
+	}); err != nil {
+		t.Error("Validation Error: ", err)
+	}
+
+	// Output
+	t.Log("\n" + fmt.Sprint(d))
 }

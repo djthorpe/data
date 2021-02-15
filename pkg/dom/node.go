@@ -187,6 +187,8 @@ func (this *Element) AddChild(child data.Node) error {
 		return this.addChildElement(node)
 	case *Text:
 		return this.addChildText(node)
+	case *Comment:
+		return this.addChildComment(node)
 	default:
 		return data.ErrInternalAppError.WithPrefix("AddChild")
 	}
@@ -198,6 +200,8 @@ func (this *Element) RemoveChild(child data.Node) error {
 		return this.removeChildElement(node)
 	case *Text:
 		return this.removeChildText(node)
+	case *Comment:
+		return this.removeChildComment(node)
 	default:
 		return data.ErrInternalAppError.WithPrefix("RemoveChild")
 	}

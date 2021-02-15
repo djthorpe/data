@@ -9,6 +9,7 @@ import (
 // TYPES
 
 type DOMOption uint8
+type DOMValidateNodeFunc func(Node) error
 
 /////////////////////////////////////////////////////////////////////
 // INTERFACES

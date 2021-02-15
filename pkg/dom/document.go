@@ -16,6 +16,7 @@ type Document struct {
 
 	opts data.DOMOption
 	id   map[string]map[string]*Element // ns->value->node
+	fn   data.DOMValidateNodeFunc
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -49,6 +50,10 @@ func (this *Document) CreateElementNS(name, ns string) data.Node {
 
 func (this *Document) CreateText(cdata string) data.Node {
 	return NewText([]byte(cdata), nil, this)
+}
+
+func (this *Document) CreateComment(cdata string) data.Node {
+	return NewComment([]byte(cdata), nil, this)
 }
 
 func (this *Document) GetElementById(value string) data.Node {
@@ -86,11 +91,21 @@ func (this *Document) Write(w io.Writer) error {
 // READ
 
 func Read(r io.Reader, opts data.DOMOption) (data.Document, error) {
+	return ReadEx(r, opts, nil)
+}
+
+func ReadEx(r io.Reader, opts data.DOMOption, fn data.DOMValidateNodeFunc) (data.Document, error) {
 	this := NewDocumentNS("xml", "", opts).(*Document)
+	this.fn = fn
 	dec := xml.NewDecoder(r)
+
+	// Decode document
 	if err := dec.Decode(this); err != nil {
 		return nil, err
 	}
+
+	// Remove validator
+	this.fn = nil
 
 	// Return success
 	return this, nil

@@ -48,7 +48,11 @@ func (this *Document) UnmarshalXML(dec *xml.Decoder, start xml.StartElement) err
 				return err
 			}
 		case xml.EndElement:
-			if err := ctx.EndElement(tok); err != nil {
+			if node, err := ctx.EndElement(tok); err != nil {
+				return err
+			} else if this.fn == nil {
+				// no-op
+			} else if err := this.fn(node); err != nil {
 				return err
 			}
 		case xml.Comment:
@@ -115,15 +119,14 @@ func (ctx *context) StartElement(start xml.StartElement, node *Element) error {
 	return nil
 }
 
-func (ctx *context) EndElement(end xml.EndElement) error {
+func (ctx *context) EndElement(end xml.EndElement) (*Element, error) {
 	if parent := ctx.Pop(); parent == nil {
-		return data.ErrBadParameter.WithPrefix("Invalid end tag outside document: ", strconv.Quote(end.Name.Local))
+		return nil, data.ErrBadParameter.WithPrefix("Invalid end tag outside document: ", strconv.Quote(end.Name.Local))
 	} else if parent.XMLName != end.Name {
-		return data.ErrBadParameter.WithPrefix("Non-matching end tag: ", strconv.Quote(end.Name.Local))
+		return nil, data.ErrBadParameter.WithPrefix("Non-matching end tag: ", strconv.Quote(end.Name.Local))
+	} else {
+		return parent, nil
 	}
-
-	// Return success
-	return nil
 }
 
 func (ctx *context) Text(cdata xml.CharData) error {
