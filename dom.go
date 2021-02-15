@@ -24,6 +24,7 @@ type Document interface {
 	CreateElement(string) Node
 	CreateElementNS(string, string) Node
 	CreateText(string) Node
+	CreateComment(string) Node
 
 	// Write XML
 	Write(io.Writer) error

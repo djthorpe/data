@@ -2,8 +2,10 @@
 
 This repository contains various data extraction, transformation processing and visualization tools. Currently it contains the following:
 
-  * `data.Table` provides you with a way to ingest, transform and process data tables in comma-separated value format and output in CSV, ASCII and SQL formats.
-  * `data.Canvas` provides a drawing canvas on which graphics primitives such as lines, circles, text and rectangles can be placed. Additionally transformation, grouping and stylizing of primitives can be applied. Canvases can currently be written in SVG format, the intention is to also allow rendering using OpenGL later.
+  * [`data.Table`](#tables) provides you with a way to ingest, transform and process data tables in comma-separated value format and output in CSV, ASCII and SQL formats;
+  * [`data.DOM`](#dom) provides a document object model which can read and write the XML format in addition to validating
+  the XML;
+  * [`data.Canvas`](#canvas) provides a drawing canvas on which graphics primitives such as lines, circles, text and rectangles can be placed. Additionally transformation, grouping and stylizing of primitives can be applied. Canvases can currently be written in SVG format, the intention is to also allow rendering using OpenGL later.
 
 ## Tables
 
@@ -197,6 +199,132 @@ func main() {
 ```
 
 A similar transformation function can be defined on output, for converting a native format to a string.
+
+## DOM
+
+The DOM package allows you to create, read and write XML formatted documents. To create a new document, use the `NewDocument` or `NewDocumentNS` method:
+
+```go
+package main
+
+import (
+	"github.com/djthorpe/data"
+	"github.com/djthorpe/data/pkg/dom"
+)
+
+func main() {
+	d := dom.NewDocumentNS("svg", data.XmlNamespaceSVG, 0)
+	if d == nil {
+		panic("Unexpected nil return from NewDocument")
+	}
+	// ...
+}
+```
+
+The third argument provides options which can affect how the document is parsed:
+
+  * `data.DOMWriteDirective` writes the XML declaration header when using `Write`;
+  * `data.DOMWriteIndentTab` indents XML output with tabs when using `Write`;
+  * `data.DOMWriteIndentSpace2` indents XML output with spaces when using `Write`.
+
+Elements, text and comments can be created using the following methods:
+
+```go
+type Document interface {
+	CreateElement(name string) Node
+	CreateElementNS(name,ns string) Node
+	CreateText(cdata string) Node
+	CreateComment(comment string) Node
+	// ...
+}
+```
+
+Introspection on a `data.Node` is provided by the following methods:
+
+```go
+type Node interface {
+	Name() xml.Name
+	Attrs() []xml.Attr
+	Children() []Node
+	Parent() Node
+	Cdata() string
+	// ...
+}
+```
+
+Any node can be added to another node (potentially detatching it from its' current parent) or removed with the following methods:
+
+```go
+type Node interface {
+	AddChild(Node) error
+	RemoveChild(Node) error
+	// ...
+}
+```
+
+It is not possible to add a child to a text or comment node. Finally, an attribute can be set on an element node:
+
+```go
+type Node interface {
+	SetAttr(name, value string) error
+	SetAttrNS(name,ns,value string) error
+	// ...
+}
+```
+
+### Writing, Reading & Validating XML
+
+The following method is provided for writing the document in XML:
+
+```go
+type Document interface {
+	Write(io.Writer) error
+	// ...
+}
+```
+
+You can also use `xml.Marshal` from the standard library `encoding/xml` on the document or any node. To read, and parse a new document from a data stream, use the `Read` method, which returns errors if there was a parsing error:
+
+```
+package main
+
+import (
+	"github.com/djthorpe/data"
+	"github.com/djthorpe/data/pkg/dom"
+)
+
+func main() {
+	d,err := dom.Read(os.Stdin, 0)
+	if err != nil {
+		panic(err)
+	}
+	// ...
+}
+```
+
+Validation on child nodes can be performed using the `ReadEx` method. For example,
+
+```
+package main
+
+import (
+	"github.com/djthorpe/data"
+	"github.com/djthorpe/data/pkg/dom"
+)
+
+func main() {
+	d,err := dom.ReadEx(os.Stdin, 0,func(data.Node) error {
+		// Validate node and children here
+		return nil
+	})
+	if err != nil {
+		panic(err)
+	}
+	// ...
+}
+```
+
+The node argument to the callback method are always elements (as opposed to text and comment nodes), and it is assumed your validation function will validate both the attributes and children of the node.
 
 ## Canvas
 
