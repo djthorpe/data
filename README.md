@@ -61,17 +61,16 @@ Further to these, statistical and learning algorithms could be implemented.
 
 ## License
 
-This repository is released under the [Apache license](https://github.com/djthorpe/data/tree/7f02a4b2bcc64113cf15ee330a72d5dcbb54d60e/LICENSE/README.md):
+This repository is released under the [Apache license](http://www.apache.org/licenses/LICENSE-2.0):
 
-&gt;
-
-> Copyright 2021 David Thorpe and all other authors of the software
+```
+> Copyright 2021 David Thorpe and all other authors of this software.
 >
-> Licensed under the Apache License, Version 2.0 \(the "License"\); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+> Licensed under the Apache License, Version 2.0 \(the "License"\); you may not use this file except in compliance with the License. You may obtain a copy of the License at:
 >
-> ```text
 >   http://www.apache.org/licenses/LICENSE-2.0
-> ```
 >
 > Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+```
+
 
