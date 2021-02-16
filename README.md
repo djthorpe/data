@@ -16,7 +16,7 @@ I have published the documention at [data.mutablelogic.com](https://data.mutable
 
 * [pkg.go.dev documentation](https://pkg.go.dev/github.com/djthorpe/data)
 
-## Usage
+## Usage and Examples
 
 * Requires go version [1.13 and newer](https://golang.org/dl/);
 * To use the Makefile, requires [GNU Make](https://www.gnu.org/software/make/).
@@ -32,7 +32,28 @@ A temporary build folder is created on build. To run the tests or clean, use `ma
 
 ## Project Status
 
-This module is currently **in development** but is mostly feature-complete.
+This module is currently **in development** and the status of each package is as follows:
+
+* `pkg/table` is mostly feature-complete;
+* `pkg/dom` is mostly feature-complete;
+* `pkg/canvas` is in development. There is work to:
+  * Ensure all primitives are supported;
+  * Ensure as many SVG files can be parsed as possible;
+  * Provide rendering for PDF and bitmap images as well as SVG;
+  * Provide bindings for screen rendering through OpenGL and OpenVG, although that may occur
+    through another repository.
+* `pkg/color` is in development. There is work to:
+  * Requires some tests and documentation;
+  * A way to select different palettes
+  * Test code for nearest distance between colors
+* `pkg/geom` is in development.
+* `pkg/viz` is in development.
+* `pkg/series` is in development. There is work to:
+  * Split out code to implement sets for labels, points, f32, date and datetime.
+  * Documentation
+  * Tests
+
+Further to these, statistical and learning algorithms could be implemented.
 
 ## Contributing and Filing Issues
 
