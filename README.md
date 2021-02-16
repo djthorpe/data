@@ -1,7 +1,7 @@
 
 # Data Extraction, Transformation, Processing and Visualisation
 
-This repository contains various data extraction, transformation processing and visualization tools. Currently it contains the following:
+This repository contains various data extraction, transformation processing and visualization tools in __golang__. Currently it contains the following:
 
 * [`data.Table`](doc/table.md) provides you with a way to ingest, transform and process data tables in comma-separated value format and output in CSV, ASCII and SQL formats;
 * [`data.DOM`](doc/dom.md) provides a document object model which can read and write the XML format in addition to validating
@@ -15,6 +15,20 @@ This repository contains various data extraction, transformation processing and 
 I have published the documention at [data.mutablelogic.com](https://data.mutablelogic.com). You can also see the following useful sources of information:
 
 * [pkg.go.dev documentation](https://pkg.go.dev/github.com/djthorpe/data)
+
+## Usage
+
+* Requires go version [1.13 and newer](https://golang.org/dl/);
+* To use the Makefile, requires [GNU Make](https://www.gnu.org/software/make/).
+
+There are various examples in the `cmd` folder. In order to build the examples, use the following command:
+
+```bash
+make
+cd build/cmd
+```
+
+A temporary build folder is created on build. To run the tests or clean, use `make test` and `make clean` respectively. There is more information about the examples in the [documentation](doc/examples.md).
 
 ## Project Status
 
