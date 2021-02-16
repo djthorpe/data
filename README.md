@@ -4,10 +4,7 @@
 This repository contains various data extraction, transformation processing and visualization tools in __golang__. Currently it contains the following:
 
 * [`data.Table`](doc/table.md) provides you with a way to ingest, transform and process data tables in comma-separated value format and output in CSV, ASCII and SQL formats;
-* [`data.DOM`](doc/dom.md) provides a document object model which can read and write the XML format in addition to validating
-
-  the XML;
-
+* [`data.DOM`](doc/dom.md) provides a document object model which can read and write the XML format in addition to validating the XML;
 * [`data.Canvas`](doc/canvas.md) provides a drawing canvas on which graphics primitives such as lines, circles, text and rectangles can be placed. Additionally transformation, grouping and stylizing of primitives can be applied. Canvases can currently be written in SVG format, the intention is to also allow rendering using OpenGL later.
 
 ## Documentation
@@ -24,8 +21,10 @@ I have published the documention at [data.mutablelogic.com](https://data.mutable
 There are various examples in the `cmd` folder. In order to build the examples, use the following command:
 
 ```bash
-make
-cd build/cmd
+bash% git clone git@github.com:djthorpe/data.git
+bash% cd data
+bash% make
+bash% cd build/cmd
 ```
 
 A temporary build folder is created on build. To run the tests or clean, use `make test` and `make clean` respectively. There is more information about the examples in the [documentation](doc/examples.md).
@@ -57,7 +56,7 @@ Further to these, statistical and learning algorithms could be implemented.
 
 ## Contributing and Filing Issues
 
-* [File an issue or question](http://github.com/djthorpe/graph/issues) on github.
+* [File an issue or question](http://github.com/djthorpe/data/issues) on github.
 * Feel free to fork this repository. Any pull requests are gratefully received. Licensed under Apache 2.0, please read that license about using, distribution and forking. Licensed works, modifications, and larger works may be distributed under different terms and without source code.
 
 ## License
