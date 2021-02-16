@@ -107,7 +107,7 @@ func (ctx *context) StartElement(start xml.StartElement, node *Element) error {
 
 	// Add element to parent
 	if parent := ctx.Parent(); parent != nil {
-		if err := parent.addChildElement(node); err != nil {
+		if err := parent.addChildBefore(node, nil); err != nil {
 			return err
 		}
 	}
@@ -145,7 +145,7 @@ func (ctx *context) Text(cdata xml.CharData) error {
 	// Create node, add to parent
 	node := NewText(cdata, nil, ctx.document)
 	if parent := ctx.Parent(); parent != nil {
-		if err := parent.addChildText(node); err != nil {
+		if err := parent.addChildBefore(node, nil); err != nil {
 			return err
 		}
 	}
@@ -158,7 +158,7 @@ func (ctx *context) Comment(cdata xml.Comment) error {
 	// Create node, add to parent
 	node := NewComment(cdata, nil, ctx.document)
 	if parent := ctx.Parent(); parent != nil {
-		if err := parent.addChildComment(node); err != nil {
+		if err := parent.addChildBefore(node, nil); err != nil {
 			return err
 		}
 	}

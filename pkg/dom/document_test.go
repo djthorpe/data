@@ -14,6 +14,12 @@ const (
 	XMLFILE_A = "../../etc/xml/tiger.svg"
 )
 
+func CheckError(t *testing.T, err error) {
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 func Test_Document_001(t *testing.T) {
 	d := dom.NewDocumentNS("svg", data.XmlNamespaceSVG, 0)
 	if d == nil {
@@ -21,10 +27,9 @@ func Test_Document_001(t *testing.T) {
 	}
 	if title := d.CreateElement("title"); title == nil {
 		t.Error("Unexpected nil return from CreateElement")
-	} else if err := d.AddChild(title); err != nil {
-		t.Error(err)
-	} else if err := title.AddChild(d.CreateText("Hello, World")); err != nil {
-		t.Error(err)
+	} else {
+		CheckError(t, d.AddChild(title))
+		CheckError(t, title.AddChild(d.CreateText("Hello, World")))
 	}
 
 	// Check output
@@ -47,11 +52,11 @@ func Test_Document_002(t *testing.T) {
 	tb := d.CreateText("B")
 	tc := d.CreateText("C")
 
-	group.AddChild(title)
-	group.AddChild(tc)
-	d.AddChild(group)
-	title.AddChild(ta)
-	title.AddChild(tb)
+	CheckError(t, group.AddChild(title))
+	CheckError(t, group.AddChild(tc))
+	CheckError(t, d.AddChild(group))
+	CheckError(t, title.AddChild(ta))
+	CheckError(t, title.AddChild(tb))
 
 	// Validate
 	if len(d.Children()) != 1 || d.Children()[0] != group {
@@ -82,12 +87,11 @@ func Test_Document_003(t *testing.T) {
 	ta := d.CreateText("A")
 	tb := d.CreateText("B")
 	tc := d.CreateText("C")
-	d.AddChild(group)
-
-	group.AddChild(ta)
-	group.AddChild(tb)
-	group.AddChild(tc)
-	group.AddChild(ta) // order should be b,c,a
+	CheckError(t, d.AddChild(group))
+	CheckError(t, group.AddChild(ta))
+	CheckError(t, group.AddChild(tb))
+	CheckError(t, group.AddChild(tc))
+	CheckError(t, group.AddChild(ta)) // order should be b,c,a
 
 	// Validate
 	if len(group.Children()) != 3 || group.Children()[0] != tb || group.Children()[1] != tc || group.Children()[2] != ta {
@@ -99,9 +103,9 @@ func Test_Document_003(t *testing.T) {
 		t.Error("Unexpected: ", str)
 	}
 
-	group.AddChild(ta)
-	group.AddChild(tb)
-	group.AddChild(tc) // order should be a,b,c
+	CheckError(t, group.AddChild(ta))
+	CheckError(t, group.AddChild(tb))
+	CheckError(t, group.AddChild(tc)) // order should be a,b,c
 
 	// Validate
 	if len(group.Children()) != 3 || group.Children()[0] != ta || group.Children()[1] != tb || group.Children()[2] != tc {
@@ -113,7 +117,7 @@ func Test_Document_003(t *testing.T) {
 		t.Error("Unexpected: ", str)
 	}
 
-	group.RemoveChild(ta) // order should be b,c
+	CheckError(t, group.RemoveChild(ta)) // order should be b,c
 
 	// Validate
 	if len(group.Children()) != 2 || group.Children()[0] != tb || group.Children()[1] != tc {
@@ -125,8 +129,7 @@ func Test_Document_003(t *testing.T) {
 		t.Error("Unexpected: ", str)
 	}
 
-	group.RemoveChild(ta)
-	group.RemoveChild(tc) // order should be b
+	CheckError(t, group.RemoveChild(tc)) // order should be b
 
 	// Validate
 	if len(group.Children()) != 1 || group.Children()[0] != tb {
@@ -138,7 +141,7 @@ func Test_Document_003(t *testing.T) {
 		t.Error("Unexpected: ", str)
 	}
 
-	group.AddChild(ta) // order should be b,a
+	CheckError(t, group.AddChild(ta)) // order should be b,a
 
 	// Validate
 	if len(group.Children()) != 2 || group.Children()[0] != tb || group.Children()[1] != ta {
@@ -150,9 +153,9 @@ func Test_Document_003(t *testing.T) {
 		t.Error("Unexpected: ", str)
 	}
 
-	group.AddChild(ta)
-	group.AddChild(tb)
-	group.AddChild(tc) // order should be a,b,c
+	CheckError(t, group.AddChild(ta))
+	CheckError(t, group.AddChild(tb))
+	CheckError(t, group.AddChild(tc)) // order should be a,b,c
 
 	// Validate
 	if len(group.Children()) != 3 || group.Children()[0] != ta || group.Children()[1] != tb || group.Children()[2] != tc {
@@ -180,9 +183,7 @@ func Test_Document_004(t *testing.T) {
 	}
 
 	// Add attribute
-	if err := d.SetAttr("id", "document"); err != nil {
-		t.Error(err)
-	}
+	CheckError(t, d.SetAttr("id", "document"))
 
 	// Check output
 	if str := fmt.Sprint(d); str != "<svg xmlns=\"http://www.w3.org/2000/svg\" id=\"document\"></svg>" {
@@ -200,15 +201,9 @@ func Test_Document_005(t *testing.T) {
 	}
 
 	// Add attributes
-	if err := d.SetAttr("id", "document"); err != nil {
-		t.Error(err)
-	}
-	if err := d.SetAttr("id2", "document2"); err != nil {
-		t.Error(err)
-	}
-	if err := d.SetAttr("id", "document3"); err != nil {
-		t.Error(err)
-	}
+	CheckError(t, d.SetAttr("id", "document"))
+	CheckError(t, d.SetAttr("id2", "document2"))
+	CheckError(t, d.SetAttr("id", "document3"))
 
 	// Check output
 	if str := fmt.Sprint(d); str != "<svg xmlns=\"http://www.w3.org/2000/svg\" id=\"document3\" id2=\"document2\"></svg>" {
@@ -227,7 +222,7 @@ func Test_Document_006(t *testing.T) {
 
 	// Add image
 	img := d.CreateElement("image")
-	d.AddChild(img)
+	CheckError(t, d.AddChild(img))
 
 	if err := img.SetAttrNS("href", data.XmlNamespaceXLink, "http://www.google.com/"); err != nil {
 		t.Fatal(err)
@@ -333,5 +328,193 @@ func Test_Document_010(t *testing.T) {
 	// Get group tags
 	if nodes := document.GetElementsByTagNameNS("g", data.XmlNamespaceSVG); len(nodes) == 0 {
 		t.Error("Expected more than one g tag, got ", nodes)
+	}
+}
+
+func Test_Document_011(t *testing.T) {
+	d := dom.NewDocument("xml", 0)
+	if d == nil {
+		t.Fatal("Unexpected nil return from NewDocument")
+	}
+
+	group := d.CreateElement("g")
+	ta := d.CreateElement("A")
+	tb := d.CreateElement("B")
+	tc := d.CreateElement("C")
+
+	if group.Parent() != nil {
+		t.Error("Unexpected Parent: ", group.Parent())
+	}
+	if ta.Parent() != nil {
+		t.Error("Unexpected Parent: ", ta.Parent())
+	}
+	if tb.Parent() != nil {
+		t.Error("Unexpected Parent: ", tb.Parent())
+	}
+	if tc.Parent() != nil {
+		t.Error("Unexpected Parent: ", tc.Parent())
+	}
+
+	CheckError(t, group.AddChild(tb))
+	CheckError(t, group.InsertChildBefore(ta, tb))
+	CheckError(t, group.InsertChildBefore(tc, nil))
+
+	// Validate
+	if len(group.Children()) != 3 || group.Children()[0] != ta || group.Children()[1] != tb || group.Children()[2] != tc {
+		t.Fatal("Unexpected children of group", group.Children())
+	}
+	if node := group.FirstChild(); node != ta {
+		t.Fatal("Unexpected firstChild", node)
+	}
+	if node := group.LastChild(); node != tc {
+		t.Fatal("Unexpected lastChild", node)
+	}
+
+	// Check output
+	if str := fmt.Sprint(group); str != "<g><A></A><B></B><C></C></g>" {
+		t.Error("Unexpected: ", str)
+	}
+
+	CheckError(t, group.AddChild(ta))
+	CheckError(t, group.AddChild(tb))
+	CheckError(t, group.AddChild(tc)) // order should be a,b,c
+
+	// Validate
+	if len(group.Children()) != 3 || group.Children()[0] != ta || group.Children()[1] != tb || group.Children()[2] != tc {
+		t.Fatal("Unexpected children of group", group.Children())
+	}
+	if node := group.FirstChild(); node != ta {
+		t.Fatal("Unexpected firstChild", node)
+	}
+	if node := group.LastChild(); node != tc {
+		t.Fatal("Unexpected lastChild", node)
+	}
+
+	// Check output
+	if str := fmt.Sprint(group); str != "<g><A></A><B></B><C></C></g>" {
+		t.Error("Unexpected: ", str)
+	}
+
+	CheckError(t, group.RemoveAllChildren())
+
+	// Validate
+	if len(group.Children()) != 0 {
+		t.Fatal("Unexpected children of group", group.Children())
+	}
+	if node := group.FirstChild(); node != nil {
+		t.Fatal("Unexpected firstChild", node)
+	}
+	if node := group.LastChild(); node != nil {
+		t.Fatal("Unexpected lastChild", node)
+	}
+
+	// Check output
+	if str := fmt.Sprint(group); str != "<g></g>" {
+		t.Error("Unexpected: ", str)
+	}
+
+	// Detached node
+	if ta.Parent() != nil {
+		t.Error("Unexpected Parent: ", ta.Parent())
+	}
+	if tb.Parent() != nil {
+		t.Error("Unexpected Parent: ", tb.Parent())
+	}
+	if tc.Parent() != nil {
+		t.Error("Unexpected Parent: ", tc.Parent())
+	}
+}
+
+func Test_Document_012(t *testing.T) {
+	d := dom.NewDocument("xml", 0)
+	if d == nil {
+		t.Fatal("Unexpected nil return from NewDocument")
+	}
+
+	group := d.CreateElement("g")
+	ta := d.CreateText("A")
+	tb := d.CreateComment("B")
+	tc := d.CreateElement("C")
+
+	if group.Parent() != nil {
+		t.Error("Unexpected Parent: ", group.Parent())
+	}
+	if ta.Parent() != nil {
+		t.Error("Unexpected Parent: ", ta.Parent())
+	}
+	if tb.Parent() != nil {
+		t.Error("Unexpected Parent: ", tb.Parent())
+	}
+	if tc.Parent() != nil {
+		t.Error("Unexpected Parent: ", tc.Parent())
+	}
+
+	CheckError(t, group.AddChild(tb))
+	CheckError(t, group.InsertChildBefore(ta, tb))
+	CheckError(t, group.InsertChildBefore(tc, nil))
+
+	// Validate
+	if len(group.Children()) != 3 || group.Children()[0] != ta || group.Children()[1] != tb || group.Children()[2] != tc {
+		t.Fatal("Unexpected children of group", group.Children())
+	}
+	if node := group.FirstChild(); node != ta {
+		t.Fatal("Unexpected firstChild", node)
+	}
+	if node := group.LastChild(); node != tc {
+		t.Fatal("Unexpected lastChild", node)
+	}
+
+	// Check output is ABC
+	if str := fmt.Sprint(group); str != "<g>A<!--B--><C></C></g>" {
+		t.Error("Unexpected: ", str)
+	}
+
+	CheckError(t, group.AddChild(ta))
+	CheckError(t, group.AddChild(tb))
+	CheckError(t, group.AddChild(tc)) // order should be a,b,c
+
+	// Validate
+	if len(group.Children()) != 3 || group.Children()[0] != ta || group.Children()[1] != tb || group.Children()[2] != tc {
+		t.Fatal("Unexpected children of group", group.Children())
+	}
+	if node := group.FirstChild(); node != ta {
+		t.Fatal("Unexpected firstChild", node)
+	}
+	if node := group.LastChild(); node != tc {
+		t.Fatal("Unexpected lastChild", node)
+	}
+
+	// Check output
+	if str := fmt.Sprint(group); str != "<g>A<!--B--><C></C></g>" {
+		t.Error("Unexpected: ", str)
+	}
+
+	CheckError(t, group.RemoveAllChildren())
+
+	// Validate
+	if len(group.Children()) != 0 {
+		t.Fatal("Unexpected children of group", group.Children())
+	}
+	if node := group.FirstChild(); node != nil {
+		t.Fatal("Unexpected firstChild", node)
+	}
+	if node := group.LastChild(); node != nil {
+		t.Fatal("Unexpected lastChild", node)
+	}
+
+	// Check output
+	if str := fmt.Sprint(group); str != "<g></g>" {
+		t.Error("Unexpected: ", str)
+	}
+
+	// Detached node
+	if ta.Parent() != nil {
+		t.Error("Unexpected Parent: ", ta.Parent())
+	}
+	if tb.Parent() != nil {
+		t.Error("Unexpected Parent: ", tb.Parent())
+	}
+	if tc.Parent() != nil {
+		t.Error("Unexpected Parent: ", tc.Parent())
 	}
 }
