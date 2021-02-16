@@ -3,20 +3,19 @@ package data
 /////////////////////////////////////////////////////////////////////
 // TYPES
 
-type SeriesIteratorFunc func(int, []interface{}) ([]interface{}, error)
+//type SeriesIteratorFunc func(int, []interface{}) ([]interface{}, error)
 
 /////////////////////////////////////////////////////////////////////
 // INTERFACES
 
 type Viz interface {
-	// Draw a grid on X axis with major & minor divisions,
-	// use zero for no major and/or minor
-	XGrid(int, int) VizGroup
-
-	// Draw a grid on Y axis with major & minor divisions
-	YGrid(int, int) VizGroup
+	// Create graph paper with major x minor grid squares
+	GraphPaper(major, minor int) VizGraphPaper
 }
 
+type VizGraphPaper interface{}
+
+/*
 type VizGroup interface {
 	CanvasGroup
 }
@@ -79,3 +78,4 @@ type Scale interface {
 	// Write scale to canvas
 	WritePath(Canvas) CanvasGroup
 }
+*/

@@ -1,79 +1,78 @@
 package canvas
 
-/*
+import (
+	"fmt"
+
+	"github.com/djthorpe/data"
+	"github.com/djthorpe/data/pkg/f32"
+)
+
+type TransformOperation string
+
+/////////////////////////////////////////////////////////////////////
+// LIFECYCLE
+
+func NewTransformOperation(op string, args ...float32) TransformOperation {
+	if len(args) > 0 {
+		return TransformOperation(op + "(" + f32.Join(args, ",") + ")")
+	} else {
+		return TransformOperation(op + "()")
+	}
+}
+
 /////////////////////////////////////////////////////////////////////
 // METHODS
 
-func (elem *Element) Scale(size data.Size) data.CanvasTransform {
-	return nil
-}
-
-func (elem *Element) Translate(pt data.Point) data.CanvasTransform {
+func (*Canvas) Translate(pt data.Point) data.CanvasTransform {
 	return &transformdef{Op: translate, Point: pt}
+	if op.X != 0 || op.Y != 0 {
+		return fmt.Sprintf("translate(%v)", f32.String(op.X, op.Y))
+	}
 }
 
-func (elem *Element) Rotate(deg float32) data.CanvasTransform {
+func (*Canvas) Scale(size data.Size) data.CanvasTransform {
+	if size.W == 1.0 && size.H == 1.0 {
+		return TransformOperation("")
+	} else if size.W == size.H {
+		return NewTransformOperation("scale", size.W)
+	} else {
+		return NewTransformOperation("scale", size.W, size.H)
+	}
+
+	if op.W != 1.0 || op.H != 1.0 {
+		if op.W == op.H {
+			return fmt.Sprintf("scale(%v)", f32.String(op.W))
+		} else {
+			return fmt.Sprintf("scale(%v)", f32.String(op.W, op.H))
+		}
+	}
+}
+
+func (*Canvas) Rotate(deg float32) data.CanvasTransform {
+	if op.Angle != 0 {
+		if op.X == 0 && op.Y == 0 {
+			return fmt.Sprintf("rotate(%v)", f32.String(op.Angle))
+		} else {
+			return fmt.Sprintf("rotate(%v)", f32.String(op.Angle, op.X, op.Y))
+		}
+	}
 	return &transformdef{Op: rotate, Angle: deg, Point: data.ZeroPoint}
 }
 
-func (elem *Element) RotateAround(deg float32, pt data.Point) data.CanvasTransform {
+func (*Canvas) RotateAround(deg float32, pt data.Point) data.CanvasTransform {
 	return &transformdef{Op: rotate, Angle: deg, Point: pt}
 }
 
-func (elem *Element) SkewX(skew float32) data.CanvasTransform {
+func (*Canvas) SkewX(skew float32) data.CanvasTransform {
+	if op.Angle != 0 {
+		return fmt.Sprintf("skewx(%v)", f32.String(op.Angle))
+	}
 	return &transformdef{Op: skewx, Angle: skew}
 }
 
-func (elem *Element) SkewY(skew float32) data.CanvasTransform {
+func (*Canvas) SkewY(skew float32) data.CanvasTransform {
 	return &transformdef{Op: skewy, Angle: skew}
-}
-
-/////////////////////////////////////////////////////////////////////
-// STRINGIFY
-
-func (op *transformdef) String() string {
-	switch op.Op {
-	case translate:
-		if op.X != 0 || op.Y != 0 {
-			return fmt.Sprintf("translate(%v)", f32.String(op.X, op.Y))
-		}
-	case scale:
-		if op.W != 1.0 || op.H != 1.0 {
-			if op.W == op.H {
-				return fmt.Sprintf("scale(%v)", f32.String(op.W))
-			} else {
-				return fmt.Sprintf("scale(%v)", f32.String(op.W, op.H))
-			}
-		}
-	case rotate:
-		if op.Angle != 0 {
-			if op.X == 0 && op.Y == 0 {
-				return fmt.Sprintf("rotate(%v)", f32.String(op.Angle))
-			} else {
-				return fmt.Sprintf("rotate(%v)", f32.String(op.Angle, op.X, op.Y))
-			}
-		}
-	case skewx:
-		if op.Angle != 0 {
-			return fmt.Sprintf("skewx(%v)", f32.String(op.Angle))
-		}
-	case skewy:
-		if op.Angle != 0 {
-			return fmt.Sprintf("skewy(%v)", f32.String(op.Angle))
-		}
+	if op.Angle != 0 {
+		return fmt.Sprintf("skewy(%v)", f32.String(op.Angle))
 	}
-
-	// By default return empty string
-	return ""
 }
-
-func (t *Transform) String() string {
-	str := ""
-	for _, op := range t.op {
-		if ops := fmt.Sprint(op); ops != "" {
-			str += ops + " "
-		}
-	}
-	return strings.TrimSpace(str)
-}
-*/
