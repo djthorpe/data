@@ -21,7 +21,7 @@ func CheckError(t *testing.T, err error) {
 }
 
 func Test_Document_001(t *testing.T) {
-	d := dom.NewDocumentNS("svg", data.XmlNamespaceSVG, 0)
+	d := dom.NewDocumentNS("svg", data.XmlNamespaceSVG)
 	if d == nil {
 		t.Fatal("Unexpected nil return from NewDocument")
 	}
@@ -42,7 +42,7 @@ func Test_Document_001(t *testing.T) {
 }
 
 func Test_Document_002(t *testing.T) {
-	d := dom.NewDocumentNS("svg", data.XmlNamespaceSVG, 0)
+	d := dom.NewDocumentNS("svg", data.XmlNamespaceSVG)
 	if d == nil {
 		t.Fatal("Unexpected nil return from NewDocument")
 	}
@@ -79,7 +79,7 @@ func Test_Document_002(t *testing.T) {
 }
 
 func Test_Document_003(t *testing.T) {
-	d := dom.NewDocumentNS("svg", data.XmlNamespaceSVG, 0)
+	d := dom.NewDocumentNS("svg", data.XmlNamespaceSVG)
 	if d == nil {
 		t.Fatal("Unexpected nil return from NewDocument")
 	}
@@ -177,7 +177,7 @@ func Test_Document_003(t *testing.T) {
 }
 
 func Test_Document_004(t *testing.T) {
-	d := dom.NewDocumentNS("svg", data.XmlNamespaceSVG, 0)
+	d := dom.NewDocumentNS("svg", data.XmlNamespaceSVG)
 	if d == nil {
 		t.Fatal("Unexpected nil return from NewDocument")
 	}
@@ -195,7 +195,7 @@ func Test_Document_004(t *testing.T) {
 }
 
 func Test_Document_005(t *testing.T) {
-	d := dom.NewDocumentNS("svg", data.XmlNamespaceSVG, 0)
+	d := dom.NewDocumentNS("svg", data.XmlNamespaceSVG)
 	if d == nil {
 		t.Fatal("Unexpected nil return from NewDocument")
 	}
@@ -215,7 +215,7 @@ func Test_Document_005(t *testing.T) {
 }
 
 func Test_Document_006(t *testing.T) {
-	d := dom.NewDocumentNS("svg", data.XmlNamespaceSVG, 0)
+	d := dom.NewDocumentNS("svg", data.XmlNamespaceSVG)
 	if d == nil {
 		t.Fatal("Unexpected nil return from NewDocument")
 	}
@@ -253,7 +253,7 @@ func Test_Document_007(t *testing.T) {
 	defer fh.Close()
 
 	// Read document
-	if document, err := dom.Read(fh, data.DOMWriteDirective|data.DOMWriteIndentSpace2); err != nil {
+	if document, err := dom.Read(fh); err != nil {
 		t.Fatal(err)
 	} else {
 		t.Log("\n" + fmt.Sprint(document))
@@ -261,7 +261,7 @@ func Test_Document_007(t *testing.T) {
 }
 
 func Test_Document_008(t *testing.T) {
-	d := dom.NewDocument("doc", 0)
+	d := dom.NewDocument("doc")
 	if d == nil {
 		t.Fatal("Unexpected nil return from NewDocument")
 	}
@@ -281,7 +281,7 @@ func Test_Document_008(t *testing.T) {
 }
 
 func Test_Document_009(t *testing.T) {
-	d := dom.NewDocument("doc", 0)
+	d := dom.NewDocument("doc")
 	if d == nil {
 		t.Fatal("Unexpected nil return from NewDocument")
 	}
@@ -294,7 +294,7 @@ func Test_Document_009(t *testing.T) {
 	// Check output
 	if str := fmt.Sprint(d); str != "<doc><!--comment--></doc>" {
 		t.Error("Unexpected: ", str)
-	} else if _, err := dom.ReadEx(strings.NewReader(str), 0, func(node data.Node) error {
+	} else if _, err := dom.ReadEx(strings.NewReader(str), func(node data.Node) error {
 		t.Log("Validate=", node)
 		return nil
 	}); err != nil {
@@ -313,7 +313,7 @@ func Test_Document_010(t *testing.T) {
 	defer fh.Close()
 
 	// Read document
-	document, err := dom.Read(fh, 0)
+	document, err := dom.Read(fh)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -332,7 +332,7 @@ func Test_Document_010(t *testing.T) {
 }
 
 func Test_Document_011(t *testing.T) {
-	d := dom.NewDocument("xml", 0)
+	d := dom.NewDocument("xml")
 	if d == nil {
 		t.Fatal("Unexpected nil return from NewDocument")
 	}
@@ -426,7 +426,7 @@ func Test_Document_011(t *testing.T) {
 }
 
 func Test_Document_012(t *testing.T) {
-	d := dom.NewDocument("xml", 0)
+	d := dom.NewDocument("xml")
 	if d == nil {
 		t.Fatal("Unexpected nil return from NewDocument")
 	}
@@ -520,7 +520,7 @@ func Test_Document_012(t *testing.T) {
 }
 
 func Test_Document_013(t *testing.T) {
-	d := dom.NewDocument("xml", 0)
+	d := dom.NewDocument("xml")
 	if d == nil {
 		t.Fatal("Unexpected nil return from NewDocument")
 	}

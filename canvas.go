@@ -30,8 +30,6 @@ type (
 // INTERFACES
 
 type Canvas interface {
-	//CanvasGroup
-
 	// Get and set canvas viewbox
 	Origin() Point
 	Size() Size
@@ -47,14 +45,25 @@ type Canvas interface {
 	// Write to data stream
 	Write(Writer, io.Writer) error
 
+	// Implements CanvasGroup
+	CanvasGroup
+
+	// Drawing primitives
+	Circle(Point, float32) CanvasElement
+	Ellipse(Point, Size) CanvasElement
+	Line(Point, Point) CanvasElement
+	Rect(Point, Size) CanvasElement
+	Text(Point, ...CanvasText) CanvasElement
+	Path(...CanvasPath) CanvasElement
+
+	// Path primitives
+	MoveTo(Point) CanvasPath
+	LineTo(Point) CanvasPath
+	QuadraticTo(pt, c Point) CanvasPath
+	CubicTo(pt, c1, c2 Point) CanvasPath
+	ClosePath() CanvasPath
+
 	/*
-		// Drawing primitives
-		Circle(Point, float32) CanvasElement
-		Ellipse(Point, Size) CanvasElement
-		Line(Point, Point) CanvasElement
-		Rect(Point, Size) CanvasElement
-		Text(Point, ...CanvasText) CanvasElement
-		Path([]Point) CanvasPath
 
 		// Transform primitives
 		Scale(Size) CanvasTransform
@@ -63,6 +72,9 @@ type Canvas interface {
 		RotateAround(float32, Point) CanvasTransform
 		SkewX(float32) CanvasTransform
 		SkewY(float32) CanvasTransform
+
+		// Text primitives
+		Span(string) CanvasText
 
 		// Style primitives
 		Fill(Color, float32) CanvasStyle
@@ -75,11 +87,14 @@ type Canvas interface {
 		TextAnchor(TextAlign) CanvasStyle
 		LineCap(LineCap) CanvasStyle
 		LineJoin(LineJoin) CanvasStyle
-		MiterLimit(float32) CanvasStyle
+		MiterLimit(float32) CanvasStyle*/
+}
 
-		// Text primitives
-		Span(string) CanvasText
-	*/
+type CanvasGroup interface {
+	//CanvasElement
+
+	Desc(string) CanvasGroup
+	Group(...CanvasElement) CanvasGroup
 }
 
 type CanvasElement interface {
@@ -89,23 +104,7 @@ type CanvasElement interface {
 	Transform(...CanvasTransform) CanvasElement
 }
 
-type CanvasGroup interface {
-	CanvasElement
-
-	Desc(string) CanvasGroup
-	Group(...CanvasElement) CanvasGroup
-}
-
-type CanvasPath interface {
-	CanvasElement
-
-	MoveTo(Point) CanvasPath
-	LineTo(Point) CanvasPath
-	QuadraticTo(pt, c Point) CanvasPath
-	CubicTo(pt, c1, c2 Point) CanvasPath
-	ClosePath() CanvasPath
-}
-
+type CanvasPath interface{}
 type CanvasStyle interface{}
 type CanvasTransform interface{}
 type CanvasText interface{}
@@ -126,8 +125,9 @@ const (
 )
 
 const (
-	SVG Writer = iota
-	// TODO: PDF
+	SVG    Writer = 0
+	Minify Writer = (1 << iota) // Do not indent output
+	// TODO: PDF, PNG, etc
 )
 
 const (

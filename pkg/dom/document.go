@@ -20,17 +20,24 @@ type Document struct {
 }
 
 /////////////////////////////////////////////////////////////////////
+// CONSTANTS
+
+const (
+	DefaultDOMOptions = data.DOMWriteDirective | data.DOMWriteIndentSpace2
+)
+
+/////////////////////////////////////////////////////////////////////
 // LIFECYCLE
 
-func NewDocument(name string, opts data.DOMOption) data.Document {
-	return NewDocumentNS(name, "", opts)
+func NewDocument(name string) data.Document {
+	return NewDocumentNS(name, "")
 }
 
-func NewDocumentNS(name, ns string, opts data.DOMOption) data.Document {
+func NewDocumentNS(name, ns string) data.Document {
 	doc := new(Document)
 
 	doc.id = make(map[string]map[string]*Element)
-	doc.opts = opts
+	doc.opts = DefaultDOMOptions
 	doc.Element = NewElementNS(name, ns, nil, doc)
 
 	// Return success
@@ -67,13 +74,17 @@ func (this *Document) GetElementByIdNS(value, ns string) data.Node {
 // WRITE
 
 func (this *Document) Write(w io.Writer) error {
+	return this.WriteEx(w, this.opts)
+}
+
+func (this *Document) WriteEx(w io.Writer, opts data.DOMOption) error {
 	enc := xml.NewEncoder(w)
-	if this.opts.Is(data.DOMWriteIndentSpace2) {
+	if opts.Is(data.DOMWriteIndentSpace2) {
 		enc.Indent("", "  ")
-	} else if this.opts.Is(data.DOMWriteIndentTab) {
+	} else if opts.Is(data.DOMWriteIndentTab) {
 		enc.Indent("", "\t")
 	}
-	if this.opts.Is(data.DOMWriteDirective) {
+	if opts.Is(data.DOMWriteDirective) {
 		if _, err := w.Write([]byte(xml.Header)); err != nil {
 			return err
 		}
@@ -90,12 +101,12 @@ func (this *Document) Write(w io.Writer) error {
 /////////////////////////////////////////////////////////////////////
 // READ
 
-func Read(r io.Reader, opts data.DOMOption) (data.Document, error) {
-	return ReadEx(r, opts, nil)
+func Read(r io.Reader) (data.Document, error) {
+	return ReadEx(r, nil)
 }
 
-func ReadEx(r io.Reader, opts data.DOMOption, fn data.DOMValidateNodeFunc) (data.Document, error) {
-	this := NewDocumentNS("xml", "", opts).(*Document)
+func ReadEx(r io.Reader, fn data.DOMValidateNodeFunc) (data.Document, error) {
+	this := NewDocumentNS("xml", "").(*Document)
 	this.fn = fn
 	dec := xml.NewDecoder(r)
 
@@ -116,7 +127,7 @@ func ReadEx(r io.Reader, opts data.DOMOption, fn data.DOMValidateNodeFunc) (data
 
 func (this *Document) String() string {
 	w := new(strings.Builder)
-	if err := this.Write(w); err != nil {
+	if err := this.WriteEx(w, 0); err != nil {
 		panic(err)
 	}
 	return w.String()

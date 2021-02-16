@@ -46,7 +46,7 @@ func Read(fmt data.Writer, r io.Reader) (data.Canvas, error) {
 // PRIVATE METHODS
 
 func (this *Canvas) readSVG(r io.Reader) error {
-	if document, err := dom.ReadEx(r, DOMOptions, this.validateSVG); err != nil {
+	if document, err := dom.ReadEx(r, this.validateSVG); err != nil {
 		return err
 	} else {
 		this.Document = document

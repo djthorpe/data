@@ -21,18 +21,11 @@ type Canvas struct {
 }
 
 /////////////////////////////////////////////////////////////////////
-// CONSTANTS
-
-const (
-	DOMOptions = data.DOMWriteDirective | data.DOMWriteIndentSpace2
-)
-
-/////////////////////////////////////////////////////////////////////
 // LIFECYCLE
 
 func NewCanvas(size data.Size, units data.Unit) data.Canvas {
 	this := new(Canvas)
-	this.Document = dom.NewDocumentNS("svg", data.XmlNamespaceSVG, DOMOptions)
+	this.Document = dom.NewDocumentNS("svg", data.XmlNamespaceSVG)
 	this.origin = data.ZeroPoint
 	this.size = size
 
@@ -127,16 +120,20 @@ func (this *Canvas) Version(value string) data.Canvas {
 // WRITE CANVAS
 
 func (this *Canvas) Write(fmt data.Writer, w io.Writer) error {
-	switch fmt {
-	case data.SVG:
-		return this.writeSVG(w)
+	switch {
+	case fmt&data.SVG == data.SVG:
+		return this.writeSVG(fmt, w)
 	default:
 		return data.ErrNotImplemented
 	}
 }
 
-func (this *Canvas) writeSVG(w io.Writer) error {
-	return this.Document.Write(w)
+func (this *Canvas) writeSVG(fmt data.Writer, w io.Writer) error {
+	opts := data.DOMWriteDirective
+	if fmt&data.Minify != data.Minify {
+		opts |= data.DOMWriteIndentSpace2
+	}
+	return this.Document.WriteEx(w, opts)
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -173,37 +170,3 @@ func viewBoxFromAttr(element data.Node) (data.Point, data.Size, error) {
 	}
 	return pt, sz, nil
 }
-
-/*
-	// Drawing primitives
-	Circle(Point, float32) CanvasElement
-	Ellipse(Point, Size) CanvasElement
-	Line(Point, Point) CanvasElement
-	Rect(Point, Size) CanvasElement
-	Text(Point, ...CanvasText) CanvasElement
-	Path([]Point) CanvasPath
-
-	// Transform primitives
-	Scale(Size) CanvasTransform
-	Translate(Point) CanvasTransform
-	Rotate(float32) CanvasTransform
-	RotateAround(float32, Point) CanvasTransform
-	SkewX(float32) CanvasTransform
-	SkewY(float32) CanvasTransform
-
-	// Style primitives
-	Fill(Color, float32) CanvasStyle
-	NoFill() CanvasStyle
-	FillRule(FillRule) CanvasStyle
-	Stroke(Color, float32) CanvasStyle
-	StrokeWidth(float32) CanvasStyle
-	NoStroke() CanvasStyle
-	FontSize(float32, Unit) CanvasStyle
-	TextAnchor(TextAlign) CanvasStyle
-	LineCap(LineCap) CanvasStyle
-	LineJoin(LineJoin) CanvasStyle
-	MiterLimit(float32) CanvasStyle
-
-	// Text primitives
-	Span(string) CanvasText
-*/

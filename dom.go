@@ -29,6 +29,7 @@ type Document interface {
 
 	// Write XML
 	Write(io.Writer) error
+	WriteEx(io.Writer, DOMOption) error
 }
 
 type Node interface {
