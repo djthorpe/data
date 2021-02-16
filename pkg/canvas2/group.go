@@ -26,10 +26,24 @@ func (this *Canvas) Desc(cdata string) data.CanvasGroup {
 		}
 	}
 
+	// If there is a title tag, then put the desc tag after the title tag
+	if title := this.Document.GetElementsByTagNameNS("title", data.XmlNamespaceSVG); len(title) != 0 {
+		this.Document.InsertChildBefore(title[0].NextSibling())
+	}
+
 	// Return success
 	return this
 }
 
 func (this *Canvas) Group(children ...data.CanvasElement) data.CanvasGroup {
-
+	g := this.Document.CreateElementNS("g", data.XmlNamespaceSVG)
+	for _, child := range children {
+		if err := g.AddChild(child.(*Element)); err != nil {
+			return nil
+		}
+	}
+	if err := this.Document.AddChild(g); err != nil {
+		return nil
+	}
+	return g
 }
