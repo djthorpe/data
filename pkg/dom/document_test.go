@@ -309,3 +309,29 @@ func Test_Document_009(t *testing.T) {
 	// Output
 	t.Log("\n" + fmt.Sprint(d))
 }
+
+func Test_Document_010(t *testing.T) {
+	fh, err := os.Open(XMLFILE_A)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer fh.Close()
+
+	// Read document
+	document, err := dom.Read(fh, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Obtain title element
+	if nodes := document.GetElementsByTagNameNS("title", data.XmlNamespaceSVG); len(nodes) != 1 {
+		t.Error("Expected one title tag, got ", nodes)
+	} else if nodes[0].Name().Local != "title" {
+		t.Error("Unexpected tag", nodes[0])
+	}
+
+	// Get group tags
+	if nodes := document.GetElementsByTagNameNS("g", data.XmlNamespaceSVG); len(nodes) == 0 {
+		t.Error("Expected more than one g tag, got ", nodes)
+	}
+}

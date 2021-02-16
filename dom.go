@@ -33,14 +33,22 @@ type Document interface {
 
 type Node interface {
 	Name() xml.Name
-	Attrs() []xml.Attr
-	Children() []Node
-	Parent() Node
 	Cdata() string
+	Parent() Node
+	GetElementsByTagName(string) []Node
+	GetElementsByTagNameNS(string, string) []Node
 
+	Children() []Node
 	AddChild(Node) error
 	RemoveChild(Node) error
+	FirstChild() Node
+	LastChild() Node
+	InsertChildBefore(Node, Node) error
+	RemoveAllChildren() error
 
+	Attrs() []xml.Attr
+	Attr(string) (xml.Attr, bool)
+	AttrNS(string, string) (xml.Attr, bool)
 	SetAttr(string, string) error
 	SetAttrNS(string, string, string) error
 }

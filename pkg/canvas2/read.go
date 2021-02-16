@@ -52,7 +52,13 @@ func (this *Canvas) readSVG(r io.Reader) error {
 		this.Document = document
 	}
 
-	// TODO: Set other options for origin, size, etc.
+	// Set viewbox
+	if origin, size, err := viewBoxFromAttr(this.Document); err != nil {
+		return err
+	} else if size != data.ZeroSize {
+		this.origin = origin
+		this.size = size
+	}
 
 	// Success
 	return nil

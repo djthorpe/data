@@ -132,6 +132,14 @@ func (this *Node) Attrs() []xml.Attr {
 	return nil
 }
 
+func (this *Node) Attr(string) (xml.Attr, bool) {
+	return xml.Attr{}, false
+}
+
+func (this *Node) AttrNS(string, string) (xml.Attr, bool) {
+	return xml.Attr{}, false
+}
+
 func (this *Node) Cdata() string {
 	return ""
 }
@@ -156,6 +164,30 @@ func (this *Node) SetAttrNS(string, string, string) error {
 	return data.ErrInternalAppError
 }
 
+func (this *Node) GetElementsByTagName(name string) []data.Node {
+	return nil
+}
+
+func (this *Node) GetElementsByTagNameNS(string, string) []data.Node {
+	return nil
+}
+
+func (this *Node) FirstChild() data.Node {
+	return nil
+}
+
+func (this *Node) LastChild() data.Node {
+	return nil
+}
+
+func (this *Node) InsertChildBefore(node, ref data.Node) error {
+	return data.ErrInternalAppError
+}
+
+func (this *Node) RemoveChildren() error {
+	return data.ErrInternalAppError
+}
+
 /////////////////////////////////////////////////////////////////////
 // ELEMENT METHODS
 
@@ -171,6 +203,24 @@ func (this *Element) Attrs() []xml.Attr {
 	return attrs
 }
 
+func (this *Element) Attr(name string) (xml.Attr, bool) {
+	return this.AttrNS(name, "")
+}
+
+func (this *Element) AttrNS(name, ns string) (xml.Attr, bool) {
+	// Set key for attribute
+	key := name
+	if ns != "" {
+		key = key + "," + ns
+	}
+	// Get attribute
+	if attr, exists := this.attrs[key]; exists {
+		return *attr, true
+	} else {
+		return xml.Attr{}, false
+	}
+}
+
 func (this *Element) Children() []data.Node {
 	result := make([]data.Node, 0, len(this.children))
 	for _, child := range this.children {
@@ -181,17 +231,92 @@ func (this *Element) Children() []data.Node {
 	return result
 }
 
+func (this *Element) FirstChild() data.Node {
+	for _, child := range this.children {
+		if child != nil {
+			return child.(data.Node)
+		}
+	}
+	return nil
+}
+
+func (this *Element) LastChild() data.Node {
+	for i := len(this.children) - 1; i >= 0; i-- {
+		child := this.children[i]
+		if child != nil {
+			return child.(data.Node)
+		}
+	}
+	return nil
+}
+
 func (this *Element) AddChild(child data.Node) error {
 	switch node := child.(type) {
 	case *Element:
-		return this.addChildElement(node)
+		return this.addChildElementBefore(node, nil)
 	case *Text:
-		return this.addChildText(node)
+		return this.addChildTextBefore(node, nil)
 	case *Comment:
-		return this.addChildComment(node)
+		return this.addChildCommentBefore(node, nil)
 	default:
 		return data.ErrInternalAppError.WithPrefix("AddChild")
 	}
+}
+
+func (this *Element) InsertChildBefore(child, ref data.Node) error {
+	switch node := child.(type) {
+	case *Element:
+		this.addChildElementBefore(node, ref)
+	case *Text:
+		this.addChildTextBefore(node, ref)
+	case *Comment:
+		this.addChildCommentBefore(node, ref)
+	default:
+		return data.ErrInternalAppError.WithPrefix("InsertChildBefore")
+	}
+}
+
+func (this *Element) RemoveAllChildren() error {
+	for _, child := range this.children {
+		if child != nil {
+			// Detach child from parent
+			switch node := child.(type) {
+			case *Element:
+				node.parent = nil
+			case *Text:
+				node.parent = nil
+			case *Comment:
+				node.parent = nil
+			default:
+				return data.ErrInternalAppError.WithPrefix("RemoveChildren")
+			}
+		}
+	}
+
+	// Empty array
+	this.children = nil
+
+	// Return success
+	return nil
+}
+
+func (this *Element) GetElementsByTagName(name string) []data.Node {
+	return this.GetElementsByTagNameNS(name, "")
+}
+
+func (this *Element) GetElementsByTagNameNS(name, ns string) []data.Node {
+	xmlname := xml.Name{ns, name}
+	result := make([]data.Node, 0, len(this.children))
+	for _, child := range this.children {
+		if child != nil {
+			if element, ok := child.(*Element); ok {
+				if element.XMLName == xmlname {
+					result = append(result, child.(data.Node))
+				}
+			}
+		}
+	}
+	return result
 }
 
 func (this *Element) RemoveChild(child data.Node) error {
@@ -218,7 +343,10 @@ func (this *Element) SetAttrNS(name, ns string, value string) error {
 	}
 
 	// Set key for attribute
-	key := name + "," + ns
+	key := name
+	if ns != "" {
+		key = key + "," + ns
+	}
 
 	// Add attribute to order
 	if _, exists := this.attrs[key]; exists == false {
@@ -230,6 +358,7 @@ func (this *Element) SetAttrNS(name, ns string, value string) error {
 		Name:  xml.Name{ns, name},
 		Value: value,
 	}
+
 	// Attach attribute to document
 	this.document.setAttr(name, ns, value, this)
 
@@ -384,7 +513,12 @@ func (this *Element) removeChildComment(node *Comment) error {
 	return data.ErrNotFound
 }
 
-func (this *Element) addChildElement(node *Element) error {
+func (this *Element) addChildElementBefore(node *Element, ref data.Node) error {
+	// Find position
+	if ref != nil {
+		// TODO
+	}
+
 	// Detach node from existing parent
 	if node.parent != nil {
 		if err := node.parent.removeChildElement(node); err != nil {
@@ -400,7 +534,7 @@ func (this *Element) addChildElement(node *Element) error {
 	return nil
 }
 
-func (this *Element) addChildText(node *Text) error {
+func (this *Element) addChildTextBefore(node *Text, ref data.Node) error {
 	// Detach node from existing parent
 	if node.parent != nil {
 		if err := node.parent.removeChildText(node); err != nil {
@@ -416,7 +550,7 @@ func (this *Element) addChildText(node *Text) error {
 	return nil
 }
 
-func (this *Element) addChildComment(node *Comment) error {
+func (this *Element) addChildCommentBefore(node *Comment, ref data.Node) error {
 	// Detach node from existing parent
 	if node.parent != nil {
 		if err := node.parent.removeChildComment(node); err != nil {
