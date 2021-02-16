@@ -518,3 +518,47 @@ func Test_Document_012(t *testing.T) {
 		t.Error("Unexpected Parent: ", tc.Parent())
 	}
 }
+
+func Test_Document_013(t *testing.T) {
+	d := dom.NewDocument("xml", 0)
+	if d == nil {
+		t.Fatal("Unexpected nil return from NewDocument")
+	}
+
+	// Add attribute
+	CheckError(t, d.SetAttr("version", "1.1"))
+	if str := fmt.Sprint(d); str != "<xml version=\"1.1\"></xml>" {
+		t.Error("Unexpected: ", str)
+	}
+
+	// Replace attribute
+	CheckError(t, d.SetAttr("version", "1.2"))
+	if str := fmt.Sprint(d); str != "<xml version=\"1.2\"></xml>" {
+		t.Error("Unexpected: ", str)
+	}
+
+	// Add attribute
+	CheckError(t, d.SetAttr("foo", "bar"))
+	if str := fmt.Sprint(d); str != "<xml version=\"1.2\" foo=\"bar\"></xml>" {
+		t.Error("Unexpected: ", str)
+	}
+
+	// Remove attribute
+	CheckError(t, d.RemoveAttr("version"))
+	if str := fmt.Sprint(d); str != "<xml foo=\"bar\"></xml>" {
+		t.Error("Unexpected: ", str)
+	}
+
+	// Remove attribute
+	CheckError(t, d.RemoveAttr("foo"))
+	if str := fmt.Sprint(d); str != "<xml></xml>" {
+		t.Error("Unexpected: ", str)
+	}
+
+	// Add attribute
+	CheckError(t, d.SetAttr("foo2", "bar2"))
+	if str := fmt.Sprint(d); str != "<xml foo2=\"bar2\"></xml>" {
+		t.Error("Unexpected: ", str)
+	}
+
+}

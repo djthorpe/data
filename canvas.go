@@ -41,6 +41,9 @@ type Canvas interface {
 	Title(string) Canvas
 	Version(string) Canvas
 
+	// Return canvas as an XML document
+	DOM() Document
+
 	// Write to data stream
 	Write(Writer, io.Writer) error
 

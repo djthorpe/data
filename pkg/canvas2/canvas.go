@@ -80,24 +80,28 @@ func (this *Canvas) SetViewBox(pt data.Point, sz data.Size) error {
 	return nil
 }
 
+func (this *Canvas) DOM() data.Document {
+	return this.Document
+}
+
 func (this *Canvas) Title(cdata string) data.Canvas {
-	// Get title tag
-	title := this.Document.GetElementsByTagNameNS("title", data.XmlNamespaceSVG)
-	if len(title) == 0 {
-		title = []data.Node{this.Document.CreateElementNS("title", data.XmlNamespaceSVG)}
+	cdata = strings.TrimSpace(cdata)
+
+	// Remove existing title tags
+	if title := this.Document.GetElementsByTagNameNS("title", data.XmlNamespaceSVG); len(title) != 0 {
+		for _, child := range title {
+			this.Document.RemoveChild(child)
+		}
 	}
-	// Set title cdata
 
 	// Create a new title
-	this.title
-	if err := this.title.AddChild(this.Document.CreateText(cdata)); err != nil {
-		return nil
-	}
-
-	// Add title to document
-	// TODO
-	if err := this.Document.AddChild(this.title); err != nil {
-		return nil
+	if cdata != "" {
+		title := this.Document.CreateElementNS("title", data.XmlNamespaceSVG)
+		if err := title.AddChild(this.Document.CreateText(cdata)); err != nil {
+			return nil
+		} else if err := this.Document.InsertChildBefore(title, this.Document.FirstChild()); err != nil {
+			return nil
+		}
 	}
 
 	// Return success
@@ -105,8 +109,15 @@ func (this *Canvas) Title(cdata string) data.Canvas {
 }
 
 func (this *Canvas) Version(value string) data.Canvas {
-	// Set version attribute
-	this.Document.SetAttr("version", value)
+	value = strings.TrimSpace(value)
+
+	if value != "" {
+		// Set version attribute
+		this.Document.SetAttr("version", value)
+	} else {
+		// Remove attribute
+		this.Document.RemoveAttr("version")
+	}
 
 	// Return success
 	return this

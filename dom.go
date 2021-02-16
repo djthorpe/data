@@ -51,6 +51,8 @@ type Node interface {
 	AttrNS(string, string) (xml.Attr, bool)
 	SetAttr(string, string) error
 	SetAttrNS(string, string, string) error
+	RemoveAttr(string) error
+	RemoveAttrNS(string, string) error
 }
 
 /////////////////////////////////////////////////////////////////////

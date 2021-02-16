@@ -66,7 +66,9 @@ func (this *Element) Name() xml.Name {
 func (this *Element) Attrs() []xml.Attr {
 	attrs := make([]xml.Attr, len(this.attro))
 	for i, key := range this.attro {
-		attrs[i] = *(this.attrs[key])
+		if key != "" {
+			attrs[i] = *(this.attrs[key])
+		}
 	}
 	return attrs
 }
@@ -76,12 +78,7 @@ func (this *Element) Attr(name string) (xml.Attr, bool) {
 }
 
 func (this *Element) AttrNS(name, ns string) (xml.Attr, bool) {
-	// Set key for attribute
-	key := name
-	if ns != "" {
-		key = key + "," + ns
-	}
-	// Get attribute
+	key := attrKey(name, ns)
 	if attr, exists := this.attrs[key]; exists {
 		return *attr, true
 	} else {
@@ -183,13 +180,8 @@ func (this *Element) SetAttrNS(name, ns string, value string) error {
 		return data.ErrBadParameter.WithPrefix("SetAttrNS ", strconv.Quote(name))
 	}
 
-	// Set key for attribute
-	key := name
-	if ns != "" {
-		key = key + "," + ns
-	}
-
 	// Add attribute to order
+	key := attrKey(name, ns)
 	if _, exists := this.attrs[key]; exists == false {
 		this.attro = append(this.attro, key)
 	}
@@ -202,6 +194,30 @@ func (this *Element) SetAttrNS(name, ns string, value string) error {
 
 	// Attach attribute to document
 	this.document.setAttr(name, ns, value, this)
+
+	// Return success
+	return nil
+}
+
+func (this *Element) RemoveAttr(name string) error {
+	return this.RemoveAttrNS(name, "")
+}
+
+func (this *Element) RemoveAttrNS(name, ns string) error {
+	// Check for existence of attribute
+	key := attrKey(name, ns)
+	if _, exists := this.attrs[key]; exists == false {
+		return data.ErrNotFound.WithPrefix("RemoveAttrNS: ", strconv.Quote(name))
+	} else {
+		delete(this.attrs, key)
+	}
+
+	// Remove from attribute order
+	for i := range this.attro {
+		if this.attro[i] == key {
+			this.attro[i] = ""
+		}
+	}
 
 	// Return success
 	return nil
@@ -267,6 +283,14 @@ func (this *Element) MarshalXML(enc *xml.Encoder, start xml.StartElement) error 
 
 /////////////////////////////////////////////////////////////////////
 // PRIVATE METHODS
+
+func attrKey(name, ns string) string {
+	key := name
+	if ns != "" {
+		key = key + "," + ns
+	}
+	return key
+}
 
 func setParent(node data.Node, parent *Element) error {
 	switch node := node.(type) {

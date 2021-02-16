@@ -71,6 +71,14 @@ func (this *Node) SetAttrNS(string, string, string) error {
 	return data.ErrInternalAppError
 }
 
+func (this *Node) RemoveAttr(string) error {
+	return data.ErrInternalAppError
+}
+
+func (this *Node) RemoveAttrNS(string, string) error {
+	return data.ErrInternalAppError
+}
+
 func (this *Node) GetElementsByTagName(name string) []data.Node {
 	return nil
 }

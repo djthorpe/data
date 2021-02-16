@@ -15,5 +15,7 @@ func Test_Canvas_001(t *testing.T) {
 	b := new(strings.Builder)
 	if err := c1.Write(data.SVG, b); err != nil {
 		t.Fatal(err)
+	} else {
+		t.Log(b.String())
 	}
 }
