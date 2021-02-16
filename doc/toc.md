@@ -1,6 +1,6 @@
 # Table of contents
 
-* [README](../README.md)
+* [Introduction](../README.md)
 * [Tables](table.md)
 * [The Document Object Model](dom.md)
 * [Canvas](canvas.md)
