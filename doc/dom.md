@@ -1,3 +1,7 @@
+---
+description: 'XML Document ingestion, parsing, validation and transmission'
+---
+
 # The Document Object Model
 
 The `dom` package implements some of the **Document Object Model** [DOM](https://en.wikipedia.org/wiki/Document_Object_Model). This package allows you to create, read and write XML formatted documents.
