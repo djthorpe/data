@@ -1,3 +1,7 @@
+---
+description: 'Organization, reading, transformation and rendering of graphics primitives'
+---
+
 # Canvas
 
 You can create canvas objects by using the `NewCanvas` method and then create shape primitives, styles, transforms and groups on the canvas before writing out the canvas to render it. Currently SVG is supported for rendering. For example, the following code writes out a canvas as SVG of A4 paper size:
