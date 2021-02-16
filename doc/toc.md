@@ -7,5 +7,5 @@
 
 # Appendices
 
-* [Usage License](../LICENSE.md)
+* [Usage License](../LICENSE)
 
