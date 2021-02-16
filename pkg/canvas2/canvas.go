@@ -1,7 +1,10 @@
 package canvas
 
 import (
+	"fmt"
 	"io"
+	"strconv"
+	"strings"
 
 	"github.com/djthorpe/data"
 	"github.com/djthorpe/data/pkg/dom"
@@ -13,10 +16,8 @@ import (
 
 type Canvas struct {
 	data.Document
-	origin  data.Point
-	size    data.Size
-	title   data.Node
-	version data.Node
+	origin data.Point
+	size   data.Size
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -45,7 +46,9 @@ func NewCanvas(size data.Size, units data.Unit) data.Canvas {
 	}
 
 	// Set the viewbox
-	this.setViewBox(this.Document)
+	if err := setViewBox(this.Document, this.origin, this.size); err != nil {
+		return nil
+	}
 
 	// Return the canvas
 	return this
@@ -54,20 +57,23 @@ func NewCanvas(size data.Size, units data.Unit) data.Canvas {
 /////////////////////////////////////////////////////////////////////
 // METHODS
 
-// Get and set canvas viewbox
+// Get viewBox origin
 func (this *Canvas) Origin() data.Point {
 	return this.origin
 }
 
+// Get viewBox size
 func (this *Canvas) Size() data.Size {
 	return this.size
 }
 
+// Set viewBox
 func (this *Canvas) SetViewBox(pt data.Point, sz data.Size) error {
-	this.origin = pt
-	this.size = sz
-	if err := this.setViewBox(this.Document); err != nil {
+	if err := setViewBox(this.Document, pt, sz); err != nil {
 		return err
+	} else {
+		this.origin = pt
+		this.size = sz
 	}
 
 	// Return success
@@ -75,13 +81,15 @@ func (this *Canvas) SetViewBox(pt data.Point, sz data.Size) error {
 }
 
 func (this *Canvas) Title(cdata string) data.Canvas {
-	// Remove any existing title tag
-	if this.title != nil {
-		this.Document.RemoveChild(this.title)
+	// Get title tag
+	title := this.Document.GetElementsByTagNameNS("title", data.XmlNamespaceSVG)
+	if len(title) == 0 {
+		title = []data.Node{this.Document.CreateElementNS("title", data.XmlNamespaceSVG)}
 	}
+	// Set title cdata
 
 	// Create a new title
-	this.title = this.Document.CreateElement("title")
+	this.title
 	if err := this.title.AddChild(this.Document.CreateText(cdata)); err != nil {
 		return nil
 	}
@@ -123,20 +131,36 @@ func (this *Canvas) writeSVG(w io.Writer) error {
 /////////////////////////////////////////////////////////////////////
 // PRIVATE METHODS
 
-func (this *Canvas) setViewBox(element data.Node) error {
+func setViewBox(element data.Node, origin data.Point, size data.Size) error {
 	// Check parameters
-	if this.size.W == 0 || this.size.H == 0 {
+	if size.W == 0 || size.H == 0 {
 		return data.ErrBadParameter.WithPrefix("setViewBox")
 	}
 
 	// Update viewbox
-	viewBox := f32.Join([]float32{this.origin.X, this.origin.Y, f32.Abs(this.size.W), f32.Abs(this.size.H)}, " ")
+	viewBox := f32.Join([]float32{origin.X, origin.Y, f32.Abs(size.W), f32.Abs(size.H)}, " ")
 	if err := element.SetAttr("viewBox", viewBox); err != nil {
 		return err
 	}
 
 	// Return success
 	return nil
+}
+
+func viewBoxFromAttr(element data.Node) (data.Point, data.Size, error) {
+	viewbox, exists := element.Attr("viewBox")
+	if exists == false || viewbox.Value == "" {
+		return data.ZeroPoint, data.ZeroSize, nil
+	}
+	r := strings.NewReader(viewbox.Value)
+	var pt data.Point
+	var sz data.Size
+	if n, err := fmt.Fscanf(r, "%g %g %g %g", &pt.X, &pt.Y, &sz.W, &sz.H); err != nil {
+		return data.ZeroPoint, data.ZeroSize, err
+	} else if n != 4 {
+		return data.ZeroPoint, data.ZeroSize, data.ErrBadParameter.WithPrefix("Invalid viewBox: ", strconv.Quote(viewbox.Value))
+	}
+	return pt, sz, nil
 }
 
 /*
