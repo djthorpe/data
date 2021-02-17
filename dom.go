@@ -44,6 +44,8 @@ type Node interface {
 	RemoveChild(Node) error
 	FirstChild() Node
 	LastChild() Node
+	PrevSibling() Node
+	NextSibling() Node
 	InsertChildBefore(Node, Node) error
 	RemoveAllChildren() error
 

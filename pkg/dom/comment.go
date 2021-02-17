@@ -3,6 +3,8 @@ package dom
 import (
 	"encoding/xml"
 	"fmt"
+
+	"github.com/djthorpe/data"
 )
 
 /////////////////////////////////////////////////////////////////////
@@ -49,6 +51,14 @@ func (this *Comment) String() string {
 	} else {
 		return "<!-- " + string(bytes) + " -->"
 	}
+}
+
+func (this *Comment) PrevSibling() data.Node {
+	return prevSibling(this)
+}
+
+func (this *Comment) NextSibling() data.Node {
+	return nextSibling(this)
 }
 
 /////////////////////////////////////////////////////////////////////

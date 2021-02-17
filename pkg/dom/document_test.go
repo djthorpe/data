@@ -68,6 +68,18 @@ func Test_Document_002(t *testing.T) {
 	if len(title.Children()) != 2 || title.Children()[0] != ta || title.Children()[1] != tb {
 		t.Error("Unexpected children of title")
 	}
+	if ta.PrevSibling() != nil {
+		t.Error("Unexpected PrevSibling return", ta.PrevSibling())
+	}
+	if ta.NextSibling() != tb {
+		t.Error("Unexpected NextSibling return", ta.NextSibling())
+	}
+	if tb.PrevSibling() != ta {
+		t.Error("Unexpected PrevSibling return", tb.PrevSibling())
+	}
+	if tb.NextSibling() != nil {
+		t.Error("Unexpected NextSibling return", tb.NextSibling())
+	}
 
 	// Check output
 	if str := fmt.Sprint(d); str != "<svg xmlns=\"http://www.w3.org/2000/svg\"><g><title>AB</title>C</g></svg>" {

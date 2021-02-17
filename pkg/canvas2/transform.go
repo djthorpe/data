@@ -1,8 +1,6 @@
 package canvas
 
 import (
-	"fmt"
-
 	"github.com/djthorpe/data"
 	"github.com/djthorpe/data/pkg/f32"
 )
@@ -24,9 +22,10 @@ func NewTransformOperation(op string, args ...float32) TransformOperation {
 // METHODS
 
 func (*Canvas) Translate(pt data.Point) data.CanvasTransform {
-	return &transformdef{Op: translate, Point: pt}
-	if op.X != 0 || op.Y != 0 {
-		return fmt.Sprintf("translate(%v)", f32.String(op.X, op.Y))
+	if pt.X != 0 || pt.Y != 0 {
+		return NewTransformOperation("translate", pt.X, pt.Y)
+	} else {
+		return ""
 	}
 }
 
@@ -38,41 +37,38 @@ func (*Canvas) Scale(size data.Size) data.CanvasTransform {
 	} else {
 		return NewTransformOperation("scale", size.W, size.H)
 	}
-
-	if op.W != 1.0 || op.H != 1.0 {
-		if op.W == op.H {
-			return fmt.Sprintf("scale(%v)", f32.String(op.W))
-		} else {
-			return fmt.Sprintf("scale(%v)", f32.String(op.W, op.H))
-		}
-	}
 }
 
 func (*Canvas) Rotate(deg float32) data.CanvasTransform {
-	if op.Angle != 0 {
-		if op.X == 0 && op.Y == 0 {
-			return fmt.Sprintf("rotate(%v)", f32.String(op.Angle))
-		} else {
-			return fmt.Sprintf("rotate(%v)", f32.String(op.Angle, op.X, op.Y))
-		}
+	if deg != 0 {
+		return NewTransformOperation("rotate", deg)
+	} else {
+		return ""
 	}
-	return &transformdef{Op: rotate, Angle: deg, Point: data.ZeroPoint}
 }
 
 func (*Canvas) RotateAround(deg float32, pt data.Point) data.CanvasTransform {
-	return &transformdef{Op: rotate, Angle: deg, Point: pt}
-}
-
-func (*Canvas) SkewX(skew float32) data.CanvasTransform {
-	if op.Angle != 0 {
-		return fmt.Sprintf("skewx(%v)", f32.String(op.Angle))
+	if deg == 0 {
+		return ""
+	} else if pt == data.ZeroPoint {
+		return NewTransformOperation("rotate", deg)
+	} else {
+		return NewTransformOperation("rotate", deg, pt.X, pt.Y)
 	}
-	return &transformdef{Op: skewx, Angle: skew}
 }
 
-func (*Canvas) SkewY(skew float32) data.CanvasTransform {
-	return &transformdef{Op: skewy, Angle: skew}
-	if op.Angle != 0 {
-		return fmt.Sprintf("skewy(%v)", f32.String(op.Angle))
+func (*Canvas) SkewX(deg float32) data.CanvasTransform {
+	if deg == 0 {
+		return ""
+	} else {
+		return NewTransformOperation("skewx", deg)
+	}
+}
+
+func (*Canvas) SkewY(deg float32) data.CanvasTransform {
+	if deg == 0 {
+		return ""
+	} else {
+		return NewTransformOperation("skewy", deg)
 	}
 }

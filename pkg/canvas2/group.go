@@ -24,11 +24,10 @@ func (this *Canvas) Desc(cdata string) data.CanvasGroup {
 		} else if err := this.Document.InsertChildBefore(desc, this.Document.FirstChild()); err != nil {
 			return nil
 		}
-	}
-
-	// If there is a title tag, then put the desc tag after the title tag
-	if title := this.Document.GetElementsByTagNameNS("title", data.XmlNamespaceSVG); len(title) != 0 {
-		this.Document.InsertChildBefore(title[0].NextSibling())
+		// If there is a title tag, then put the desc tag after the title tag
+		if title := this.Document.GetElementsByTagNameNS("title", data.XmlNamespaceSVG); len(title) != 0 {
+			this.Document.InsertChildBefore(desc, title[0].NextSibling())
+		}
 	}
 
 	// Return success

@@ -115,6 +115,14 @@ func (this *Element) LastChild() data.Node {
 	return nil
 }
 
+func (this *Element) PrevSibling() data.Node {
+	return prevSibling(this)
+}
+
+func (this *Element) NextSibling() data.Node {
+	return nextSibling(this)
+}
+
 func (this *Element) AddChild(child data.Node) error {
 	return this.addChildBefore(child, nil)
 }
@@ -319,14 +327,14 @@ func (this *Element) removeChild(node data.Node) error {
 
 // positionForChild returns the index in the array for a child node
 // or returns -1
-func (this *Element) positionForChild(ref data.Node) int {
+func (this *Element) positionForChild(child data.Node) int {
 	// Set position to end if ref is nil
-	if ref == nil {
+	if child == nil {
 		return len(this.children)
 	}
 	// Determine position or return -1 if not found
-	for i, child := range this.children {
-		if child == ref {
+	for i, node := range this.children {
+		if child == node {
 			return i
 		}
 	}
