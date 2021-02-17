@@ -33,7 +33,10 @@ A temporary build folder is created on build. To run the tests or clean, use `ma
 
 This module is currently **in development** and the status of each package is as follows:
 
-* `pkg/table` is mostly feature-complete;
+* `pkg/table` is mostly feature-complete:
+  * Requires code to change width of table in ASCII mode;
+  * Add code for stylizing output in ASCII mode (color, bold, underline, italic);
+  * Add code for input and output of XML and JSON.
 * `pkg/dom` is mostly feature-complete;
 * `pkg/canvas` is in development. There is work to:
   * Ensure all primitives are supported;
