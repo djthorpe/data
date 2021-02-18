@@ -7,6 +7,10 @@ import (
 
 type TransformOperation string
 
+var (
+	NilTransformOperation = TransformOperation("")
+)
+
 /////////////////////////////////////////////////////////////////////
 // LIFECYCLE
 
@@ -25,7 +29,7 @@ func (*Canvas) Translate(pt data.Point) data.CanvasTransform {
 	if pt.X != 0 || pt.Y != 0 {
 		return NewTransformOperation("translate", pt.X, pt.Y)
 	} else {
-		return ""
+		return NilTransformOperation
 	}
 }
 
@@ -43,13 +47,13 @@ func (*Canvas) Rotate(deg float32) data.CanvasTransform {
 	if deg != 0 {
 		return NewTransformOperation("rotate", deg)
 	} else {
-		return ""
+		return NilTransformOperation
 	}
 }
 
 func (*Canvas) RotateAround(deg float32, pt data.Point) data.CanvasTransform {
 	if deg == 0 {
-		return ""
+		return NilTransformOperation
 	} else if pt == data.ZeroPoint {
 		return NewTransformOperation("rotate", deg)
 	} else {
@@ -59,7 +63,7 @@ func (*Canvas) RotateAround(deg float32, pt data.Point) data.CanvasTransform {
 
 func (*Canvas) SkewX(deg float32) data.CanvasTransform {
 	if deg == 0 {
-		return ""
+		return NilTransformOperation
 	} else {
 		return NewTransformOperation("skewx", deg)
 	}
@@ -67,7 +71,7 @@ func (*Canvas) SkewX(deg float32) data.CanvasTransform {
 
 func (*Canvas) SkewY(deg float32) data.CanvasTransform {
 	if deg == 0 {
-		return ""
+		return NilTransformOperation
 	} else {
 		return NewTransformOperation("skewy", deg)
 	}

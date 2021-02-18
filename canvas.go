@@ -74,24 +74,23 @@ type Canvas interface {
 	SkewX(float32) CanvasTransform
 	SkewY(float32) CanvasTransform
 
+	// Style primitives
+	NoFill() CanvasStyle
+	NoStroke() CanvasStyle
+	Fill(Color, float32) CanvasStyle
+	FillRule(FillRule) CanvasStyle
+	Stroke(Color, float32) CanvasStyle
+	StrokeWidth(float32) CanvasStyle
+	LineCap(LineCap) CanvasStyle
+	LineJoin(LineJoin) CanvasStyle
+	MiterLimit(float32) CanvasStyle
+
 	/*
-
-
 		// Text primitives
 		Span(string) CanvasText
-
-		// Style primitives
-		Fill(Color, float32) CanvasStyle
-		NoFill() CanvasStyle
-		FillRule(FillRule) CanvasStyle
-		Stroke(Color, float32) CanvasStyle
-		StrokeWidth(float32) CanvasStyle
-		NoStroke() CanvasStyle
 		FontSize(float32, Unit) CanvasStyle
 		TextAnchor(TextAlign) CanvasStyle
-		LineCap(LineCap) CanvasStyle
-		LineJoin(LineJoin) CanvasStyle
-		MiterLimit(float32) CanvasStyle*/
+	*/
 }
 
 type CanvasGroup interface {

@@ -5,8 +5,6 @@ import (
 	"strings"
 
 	"github.com/djthorpe/data"
-	"github.com/djthorpe/data/pkg/color"
-	"github.com/djthorpe/data/pkg/f32"
 )
 
 /////////////////////////////////////////////////////////////////////
@@ -96,78 +94,12 @@ func (e *Element) NoStroke() data.CanvasStyle {
 	return &styledef{Op: styleStrokeNone}
 }
 
-func (e *Element) Fill(color data.Color, opacity float32) data.CanvasStyle {
-	return &styledef{Op: styleFillColor | styleFillOpacity, Color: color, Opacity: opacity}
-}
-
-func (e *Element) FillRule(rule data.FillRule) data.CanvasStyle {
-	return &styledef{Op: styleFillRule, Rule: rule}
-}
-
-func (e *Element) Stroke(color data.Color, opacity float32) data.CanvasStyle {
-	return &styledef{Op: styleStrokeColor | styleStrokeOpacity, Color: color, Opacity: opacity}
-}
-
-func (e *Element) StrokeWidth(width float32) data.CanvasStyle {
-	if width == 0 {
-		return e.NoStroke()
-	} else {
-		return &styledef{Op: styleStrokeWidth, Width: width}
-	}
-}
-
 func (e *Element) FontSize(size float32, unit data.Unit) data.CanvasStyle {
 	return &styledef{Op: styleFontSize, Width: size, Unit: unit}
 }
 
 func (e *Element) TextAnchor(align data.TextAlign) data.CanvasStyle {
 	return &styledef{Op: styleTextAnchor, Align: align}
-}
-
-func (e *Element) LineCap(cap data.LineCap) data.CanvasStyle {
-	return &styledef{Op: styleLineCap, Cap: cap}
-}
-
-func (e *Element) LineJoin(join data.LineJoin) data.CanvasStyle {
-	return &styledef{Op: styleLineJoin, Join: join}
-}
-
-func (e *Element) MiterLimit(limit float32) data.CanvasStyle {
-	return &styledef{Op: styleMiterLimit, Width: limit}
-}
-
-/////////////////////////////////////////////////////////////////////
-// STRINGIFY
-
-func (f styleop) FlagString() string {
-	switch f {
-	case styleNone:
-		return "none"
-	case styleFillNone, styleFillColor:
-		return "fill"
-	case styleFillRule:
-		return "fill-rule"
-	case styleStrokeNone, styleStrokeColor:
-		return "stroke"
-	case styleFillOpacity:
-		return "fill-opacity"
-	case styleStrokeOpacity:
-		return "stroke-opacity"
-	case styleStrokeWidth:
-		return "stroke-width"
-	case styleFontSize:
-		return "font-size"
-	case styleTextAnchor:
-		return "text-anchor"
-	case styleLineCap:
-		return "stroke-linecap"
-	case styleLineJoin:
-		return "stroke-linejoin"
-	case styleMiterLimit:
-		return "stroke-miterlimit"
-	default:
-		return "[?? invalid styleop value]"
-	}
 }
 
 func (f styleop) String() string {
@@ -244,18 +176,6 @@ func (s *Style) DefString(op styleop, def *styledef) string {
 	}
 	// By default return empty string
 	return ""
-}
-
-func ColorString(name styleop, value data.Color) string {
-	return fmt.Sprintf("%v: %v", name, color.String(value))
-}
-
-func FloatString(name styleop, value float32) string {
-	return fmt.Sprintf("%v: %s", name, f32.String(value))
-}
-
-func UnitString(name styleop, value float32, unit data.Unit) string {
-	return fmt.Sprintf("%v: %s%s", name, f32.String(value), unit.String())
 }
 
 func StyleString(name styleop, value interface{}) string {

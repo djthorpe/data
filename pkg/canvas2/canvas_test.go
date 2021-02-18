@@ -7,6 +7,7 @@ import (
 
 	data "github.com/djthorpe/data"
 	canvas "github.com/djthorpe/data/pkg/canvas2"
+	"github.com/djthorpe/data/pkg/color"
 )
 
 func CheckError(t *testing.T, err error) {
@@ -90,7 +91,7 @@ func Test_Canvas_004(t *testing.T) {
 	c := canvas.NewCanvas(data.Size{16, 16}, data.PX)
 	if shape := c.Ellipse(data.ZeroPoint, data.Size{20, 30}); shape == nil {
 		t.Error("Unexpected nil from c.Ellipse")
-	} else if str := fmt.Sprint(shape); str != "<ellipse cx=\"0\" cy=\"0\" rx=\"20\" rx=\"30\"></ellipse>" {
+	} else if str := fmt.Sprint(shape); str != "<ellipse cx=\"0\" cy=\"0\" rx=\"20\" ry=\"30\"></ellipse>" {
 		t.Error("Unexpected return, got: ", str)
 	}
 }
@@ -106,7 +107,10 @@ func Test_Canvas_005(t *testing.T) {
 
 func Test_Canvas_006(t *testing.T) {
 	c := canvas.NewCanvas(data.Size{16, 16}, data.PX)
-	if shape := c.Path(data.Point{0, 10}, data.Point{20, 30}); shape == nil {
+	if shape := c.Path(
+		c.MoveTo(data.Point{0, 10}),
+		c.LineTo(data.Point{20, 30}),
+	); shape == nil {
 		t.Error("Unexpected nil from c.Path")
 	} else if str := fmt.Sprint(shape); str != "<path d=\"M 0 10 L 20 30\"></path>" {
 		t.Error("Unexpected return, got: ", str)
@@ -156,7 +160,196 @@ func Test_Canvas_010(t *testing.T) {
 		c.Circle(data.Point{0, 0}, 10),
 	).Id("test")); g == nil {
 		t.Error("Unexpected nil from c.Group")
-	} else if str := fmt.Sprint(g); str != "<g><g id=\"test\"><circle x=\"0\" y=\"0\" r=\"10\"></circle></g></g>" {
+	} else if str := fmt.Sprint(g); str != "<g><g id=\"test\"><circle cx=\"0\" cy=\"0\" r=\"10\"></circle></g></g>" {
+		t.Error("Unexpected return, got: ", str)
+	}
+}
+
+func Test_Canvas_011(t *testing.T) {
+	c := canvas.NewCanvas(data.Size{16, 16}, data.PX)
+	if g := c.Group(); g == nil {
+		t.Error("Unexpected nil from c.Group")
+	} else if g.Transform() == nil {
+		t.Error("Unexpected nil from g.Transform")
+	} else if str := fmt.Sprint(g); str != "<g></g>" {
+		t.Error("Unexpected return, got: ", str)
+	}
+}
+
+func Test_Canvas_012(t *testing.T) {
+	c := canvas.NewCanvas(data.Size{16, 16}, data.PX)
+	if g := c.Group(); g == nil {
+		t.Error("Unexpected nil from c.Group")
+	} else if g.Transform(
+		c.Translate(data.ZeroPoint),
+	) == nil {
+		t.Error("Unexpected nil from g.Transform")
+	} else if str := fmt.Sprint(g); str != "<g></g>" {
+		t.Error("Unexpected return, got: ", str)
+	}
+}
+
+func Test_Canvas_013(t *testing.T) {
+	c := canvas.NewCanvas(data.Size{16, 16}, data.PX)
+	if g := c.Group(); g == nil {
+		t.Error("Unexpected nil from c.Group")
+	} else if g.Transform(
+		c.Translate(data.Point{10, 10}),
+	) == nil {
+		t.Error("Unexpected nil from g.Transform")
+	} else if str := fmt.Sprint(g); str != "<g transform=\"translate(10,10)\"></g>" {
+		t.Error("Unexpected return, got: ", str)
+	}
+}
+
+func Test_Canvas_014(t *testing.T) {
+	c := canvas.NewCanvas(data.Size{16, 16}, data.PX)
+	if g := c.Group(); g == nil {
+		t.Error("Unexpected nil from c.Group")
+	} else if g.Transform(
+		c.Translate(data.Point{10, 10}),
+		c.Rotate(90),
+	) == nil {
+		t.Error("Unexpected nil from g.Transform")
+	} else if str := fmt.Sprint(g); str != "<g transform=\"translate(10,10) rotate(90)\"></g>" {
+		t.Error("Unexpected return, got: ", str)
+	}
+}
+
+func Test_Canvas_015(t *testing.T) {
+	c := canvas.NewCanvas(data.Size{16, 16}, data.PX)
+	if g := c.Group(); g == nil {
+		t.Error("Unexpected nil from c.Group")
+	} else if g.Transform(
+		c.Translate(data.Point{10, 10}),
+		c.RotateAround(90, data.Point{10, 10}),
+	) == nil {
+		t.Error("Unexpected nil from g.Transform")
+	} else if str := fmt.Sprint(g); str != "<g transform=\"translate(10,10) rotate(90,10,10)\"></g>" {
+		t.Error("Unexpected return, got: ", str)
+	}
+}
+
+func Test_Canvas_016(t *testing.T) {
+	c := canvas.NewCanvas(data.Size{16, 16}, data.PX)
+	if g := c.Group(); g == nil {
+		t.Error("Unexpected nil from c.Group")
+	} else if g.Transform(
+		c.Scale(data.Size{1, 1}),
+	) == nil {
+		t.Error("Unexpected nil from g.Transform")
+	} else if str := fmt.Sprint(g); str != "<g></g>" {
+		t.Error("Unexpected return, got: ", str)
+	}
+}
+
+func Test_Canvas_017(t *testing.T) {
+	c := canvas.NewCanvas(data.Size{16, 16}, data.PX)
+	if g := c.Group(); g == nil {
+		t.Error("Unexpected nil from c.Group")
+	} else if g.Transform(
+		c.Scale(data.Size{2, 2}),
+		c.Scale(data.Size{1, 3}),
+	) == nil {
+		t.Error("Unexpected nil from g.Transform")
+	} else if str := fmt.Sprint(g); str != "<g transform=\"scale(2) scale(1,3)\"></g>" {
+		t.Error("Unexpected return, got: ", str)
+	}
+}
+
+func Test_Canvas_018(t *testing.T) {
+	c := canvas.NewCanvas(data.Size{16, 16}, data.PX)
+	if g := c.Group(); g == nil {
+		t.Error("Unexpected nil from c.Group")
+	} else if g.Transform(
+		c.SkewX(2),
+		c.SkewY(3),
+	) == nil {
+		t.Error("Unexpected nil from g.Transform")
+	} else if str := fmt.Sprint(g); str != "<g transform=\"skewx(2) skewy(3)\"></g>" {
+		t.Error("Unexpected return, got: ", str)
+	}
+}
+
+func Test_Canvas_019(t *testing.T) {
+	c := canvas.NewCanvas(data.Size{16, 16}, data.PX)
+	if g := c.Group(); g == nil {
+		t.Error("Unexpected nil from c.Group")
+	} else if g.Style(
+		c.NoFill(),
+		c.NoStroke(),
+	) == nil {
+		t.Error("Unexpected nil from g.Style")
+	} else if str := fmt.Sprint(g); str != `<g style="fill:none; stroke:none;"></g>` {
+		t.Error("Unexpected return, got: ", str)
+	}
+}
+
+func Test_Canvas_020(t *testing.T) {
+	c := canvas.NewCanvas(data.Size{16, 16}, data.PX)
+	if g := c.Group(); g == nil {
+		t.Error("Unexpected nil from c.Group")
+	} else if g.Style(
+		c.Fill(color.Red, 1.0),
+	) == nil {
+		t.Error("Unexpected nil from g.Style")
+	} else if str := fmt.Sprint(g); str != `<g style="fill:red; fill-opacity:1;"></g>` {
+		t.Error("Unexpected return, got: ", str)
+	}
+}
+
+func Test_Canvas_021(t *testing.T) {
+	c := canvas.NewCanvas(data.Size{16, 16}, data.PX)
+	if g := c.Group(); g == nil {
+		t.Error("Unexpected nil from c.Group")
+	} else if g.Style(
+		c.Stroke(color.Red, 1.0),
+	) == nil {
+		t.Error("Unexpected nil from g.Style")
+	} else if str := fmt.Sprint(g); str != `<g style="stroke:red; stroke-opacity:1;"></g>` {
+		t.Error("Unexpected return, got: ", str)
+	}
+}
+
+func Test_Canvas_022(t *testing.T) {
+	c := canvas.NewCanvas(data.Size{16, 16}, data.PX)
+	if g := c.Group(); g == nil {
+		t.Error("Unexpected nil from c.Group")
+	} else if g.Style(
+		c.Stroke(color.Red, 1.0),
+		c.NoFill(),
+	) == nil {
+		t.Error("Unexpected nil from g.Style")
+	} else if str := fmt.Sprint(g); str != `<g style="fill:none; stroke:red; stroke-opacity:1;"></g>` {
+		t.Error("Unexpected return, got: ", str)
+	}
+}
+
+func Test_Canvas_023(t *testing.T) {
+	c := canvas.NewCanvas(data.Size{16, 16}, data.PX)
+	if g := c.Group(); g == nil {
+		t.Error("Unexpected nil from c.Group")
+	} else if g.Style(
+		c.Stroke(color.Red, 1.0),
+		c.StrokeWidth(2.0),
+	) == nil {
+		t.Error("Unexpected nil from g.Style")
+	} else if str := fmt.Sprint(g); str != `<g style="stroke:red; stroke-opacity:1; stroke-width:2;"></g>` {
+		t.Error("Unexpected return, got: ", str)
+	}
+}
+
+func Test_Canvas_024(t *testing.T) {
+	c := canvas.NewCanvas(data.Size{16, 16}, data.PX)
+	if g := c.Group(); g == nil {
+		t.Error("Unexpected nil from c.Group")
+	} else if g.Style(
+		c.LineCap(data.CapRound),
+		c.LineJoin(data.JoinMiterClip),
+		c.MiterLimit(2.0),
+	) == nil {
+		t.Error("Unexpected nil from g.Style")
+	} else if str := fmt.Sprint(g); str != `<g style="stroke-linecap:round; stroke-linejoin:miter-clip; stroke-miterlimit:2;"></g>` {
 		t.Error("Unexpected return, got: ", str)
 	}
 }

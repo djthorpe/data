@@ -1,7 +1,6 @@
 package canvas
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/djthorpe/data"
@@ -67,18 +66,20 @@ func (this *Canvas) Text(data.Point, ...data.CanvasText) data.CanvasElement {
 }
 
 func (this *Canvas) Path(paths ...data.CanvasPath) data.CanvasElement {
+	// Get path elements into a string array
+	d := make([]string, 0, len(paths))
+	for _, path := range paths {
+		if segment, ok := path.(PathSegment); ok == false {
+			return nil
+		} else if segment != "" {
+			d = append(d, string(segment))
+		}
+	}
+
 	// Create path element
 	elem, err := this.NewElement("path")
 	if err != nil {
 		return nil
-	}
-
-	// Get path elements into a string array
-	d := make([]string, 0, len(paths))
-	for _, path := range paths {
-		if attr := fmt.Sprint(path); attr != "" {
-			d = append(d, attr)
-		}
 	}
 
 	// Set attribute
