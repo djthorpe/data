@@ -1,40 +1,36 @@
 package canvas
 
 import (
-	"fmt"
-
 	"github.com/djthorpe/data"
 	"github.com/djthorpe/data/pkg/f32"
 )
 
-func (e *Element) MoveTo(pt data.Point) data.CanvasPath {
-	e.Attr("d", fmt.Sprint("M ", f32.String(pt.X), " ", f32.String(pt.Y)))
-	return e
+type PathSegment string
+
+func NewPathSegment(op string, args ...float32) PathSegment {
+	if len(args) > 0 {
+		return PathSegment(op + " " + f32.Join(args, " "))
+	} else {
+		return PathSegment(op)
+	}
 }
 
-func (e *Element) LineTo(pt data.Point) data.CanvasPath {
-	e.Attr("d", fmt.Sprint("L ", f32.String(pt.X), " ", f32.String(pt.Y)))
-	return e
+func (*Canvas) MoveTo(pt data.Point) data.CanvasPath {
+	return NewPathSegment("M", pt.X, pt.Y)
 }
 
-func (e *Element) QuadraticTo(pt, c data.Point) data.CanvasPath {
-	e.Attr("d", fmt.Sprint("Q ",
-		f32.String(c.X), " ", f32.String(c.Y), ", ",
-		f32.String(pt.X), " ", f32.String(pt.Y),
-	))
-	return e
+func (*Canvas) LineTo(pt data.Point) data.CanvasPath {
+	return NewPathSegment("L", pt.X, pt.Y)
 }
 
-func (e *Element) CubicTo(pt, c1, c2 data.Point) data.CanvasPath {
-	e.Attr("d", fmt.Sprint("C ",
-		f32.String(c1.X), " ", f32.String(c1.Y), ", ",
-		f32.String(c2.X), " ", f32.String(c2.Y), ", ",
-		f32.String(pt.X), " ", f32.String(pt.Y),
-	))
-	return e
+func (*Canvas) QuadraticTo(pt, c data.Point) data.CanvasPath {
+	return NewPathSegment("Q", c.X, c.Y, pt.X, pt.Y)
 }
 
-func (e *Element) ClosePath() data.CanvasPath {
-	e.Attr("d", "Z")
-	return e
+func (*Canvas) CubicTo(pt, c1, c2 data.Point) data.CanvasPath {
+	return NewPathSegment("C", c1.X, c1.Y, c2.X, c2.Y, pt.X, pt.Y)
+}
+
+func (*Canvas) ClosePath() data.CanvasPath {
+	return NewPathSegment("Z")
 }

@@ -5,13 +5,15 @@ import (
 	"strings"
 
 	"github.com/djthorpe/data"
+	"github.com/djthorpe/data/pkg/color"
+	"github.com/djthorpe/data/pkg/f32"
 )
 
 /////////////////////////////////////////////////////////////////////
 // TYPES
 
 type Style struct {
-	defs map[styleop]*styledef
+	defs map[styleop]string
 }
 
 type styleop uint
@@ -32,152 +34,171 @@ type styledef struct {
 // CONSTANTS
 
 const (
-	styleFillNone styleop = (1 << iota)
-	styleStrokeNone
-	styleFillColor
-	styleFillOpacity
-	styleStrokeColor
-	styleStrokeOpacity
-	styleStrokeWidth
-	styleFontSize
-	styleTextAnchor
-	styleLineCap
-	styleLineJoin
-	styleMiterLimit
-	styleFillRule
+	fillNone styleop = (1 << iota)
+	strokeNone
+	fillColor
+	fillOpacity
+	strokeColor
+	strokeOpacity
+	strokeWidth
+	fontSize
+	textAnchor
+	lineCap
+	lineJoin
+	miterLimit
+	fillRule
 	styleNone styleop = 0
-	styleMin          = styleFillNone
-	styleMax          = styleFillRule
+	styleMin          = fillNone
+	styleMax          = fillRule
 )
 
 /////////////////////////////////////////////////////////////////////
 // LIFECYCLE
 
-func NewStyle(styles []data.CanvasStyle) *Style {
+func NewStyles(defs []data.CanvasStyle) *Style {
 	this := new(Style)
-	this.defs = make(map[styleop]*styledef)
+	this.defs = make(map[styleop]string, len(defs))
 
-	// Append styles
-	this.Append(styles)
+	// Add styles
+	for _, def := range defs {
+		if def == nil {
+			return nil
+		} else if def, ok := def.(*styledef); ok == false {
+			return nil
+		} else if err := this.setDef(def); err != nil {
+			return nil
+		}
+	}
 
-	// Return success
 	return this
 }
 
 /////////////////////////////////////////////////////////////////////
-// STYLE METHODS
+// PRIVATE METHODS
 
-func (this *Style) Append(styles []data.CanvasStyle) {
-	for _, style := range styles {
-		if style_, ok := style.(*styledef); ok {
-			this.setStyle(style_)
+func (this *Style) setDef(def *styledef) error {
+	for v := styleMin; v <= styleMax; v <<= 1 {
+		if def.Op&v != v {
+			continue
+		}
+		if str, err := v.StyleString(def); err != nil {
+			return err
+		} else {
+			this.defs[v] = str
 		}
 	}
-}
-
-func (this *Style) setStyle(style *styledef) {
-	for f := styleMin; f <= styleMax; f <<= 1 {
-		if style.Op&f == f {
-			this.defs[f] = style
-		}
-	}
+	// Return success
+	return nil
 }
 
 /////////////////////////////////////////////////////////////////////
-// ELEMENT METHODS
+// PUBLIC METHODS
 
-func (e *Element) NoFill() data.CanvasStyle {
-	return &styledef{Op: styleFillNone}
+func (*Canvas) NoFill() data.CanvasStyle {
+	return &styledef{Op: fillNone}
 }
 
-func (e *Element) NoStroke() data.CanvasStyle {
-	return &styledef{Op: styleStrokeNone}
+func (*Canvas) NoStroke() data.CanvasStyle {
+	return &styledef{Op: strokeNone}
 }
 
-func (e *Element) FontSize(size float32, unit data.Unit) data.CanvasStyle {
-	return &styledef{Op: styleFontSize, Width: size, Unit: unit}
+func (*Canvas) Fill(color data.Color, opacity float32) data.CanvasStyle {
+	return &styledef{Op: fillColor | fillOpacity, Color: color, Opacity: opacity}
 }
 
-func (e *Element) TextAnchor(align data.TextAlign) data.CanvasStyle {
-	return &styledef{Op: styleTextAnchor, Align: align}
+func (*Canvas) FillRule(rule data.FillRule) data.CanvasStyle {
+	return &styledef{Op: fillRule, Rule: rule}
 }
+
+func (*Canvas) Stroke(color data.Color, opacity float32) data.CanvasStyle {
+	return &styledef{Op: strokeColor | strokeOpacity, Color: color, Opacity: opacity}
+}
+
+func (*Canvas) StrokeWidth(width float32) data.CanvasStyle {
+	if width == 0 {
+		return &styledef{Op: strokeNone}
+	} else {
+		return &styledef{Op: strokeWidth, Width: width}
+	}
+}
+
+func (*Canvas) LineCap(cap data.LineCap) data.CanvasStyle {
+	return &styledef{Op: lineCap, Cap: cap}
+}
+
+func (*Canvas) LineJoin(join data.LineJoin) data.CanvasStyle {
+	return &styledef{Op: lineJoin, Join: join}
+}
+
+func (*Canvas) MiterLimit(limit float32) data.CanvasStyle {
+	return &styledef{Op: miterLimit, Width: limit}
+}
+
+/////////////////////////////////////////////////////////////////////
+// STRINGIFY
 
 func (f styleop) String() string {
-	str := ""
-	if f == 0 {
-		return f.FlagString()
+	switch f {
+	case styleNone:
+		return "none"
+	case fillNone, fillColor:
+		return "fill"
+	case fillRule:
+		return "fill-rule"
+	case strokeNone, strokeColor:
+		return "stroke"
+	case fillOpacity:
+		return "fill-opacity"
+	case strokeOpacity:
+		return "stroke-opacity"
+	case strokeWidth:
+		return "stroke-width"
+	case fontSize:
+		return "font-size"
+	case textAnchor:
+		return "text-anchor"
+	case lineCap:
+		return "stroke-linecap"
+	case lineJoin:
+		return "stroke-linejoin"
+	case miterLimit:
+		return "stroke-miterlimit"
+	default:
+		return "[?? invalid styleop value]"
 	}
-	for v := styleMin; v <= styleMax; v <<= 1 {
-		if f&v == v {
-			str += v.FlagString() + "|"
-		}
+}
+
+func (f styleop) StyleString(args *styledef) (string, error) {
+	switch f {
+	case fillNone, strokeNone:
+		return fmt.Sprint(f, ":none;"), nil
+	case fillColor, strokeColor:
+		return fmt.Sprint(f, ":", color.String(args.Color), ";"), nil
+	case fillOpacity, strokeOpacity:
+		return fmt.Sprint(f, ":", f32.String(args.Opacity), ";"), nil
+	case strokeWidth, miterLimit:
+		return fmt.Sprint(f, ":", f32.String(args.Width), ";"), nil
+	case lineCap:
+		return fmt.Sprint(f, ":", args.Cap, ";"), nil
+	case lineJoin:
+		return fmt.Sprint(f, ":", args.Join, ";"), nil
+	case fillRule:
+		return fmt.Sprint(f, ":", args.Rule, ";"), nil
+	default:
+		return "", data.ErrBadParameter.WithPrefix("SetStyle: ", f)
 	}
-	return strings.TrimSuffix(str, "|")
 }
 
 func (s *Style) String() string {
-	str := ""
-	for f := styleMin; f <= styleMax; f <<= 1 {
-		if def, exists := s.defs[f]; exists {
-			if value := s.DefString(f, def); value != "" {
-				str += value + "; "
-			}
+	attrs := make([]string, 0, len(s.defs))
+	for v := styleMin; v <= styleMax; v <<= 1 {
+		if style, exists := s.defs[v]; exists {
+			attrs = append(attrs, style)
 		}
 	}
-	return strings.TrimSuffix(str, " ")
+	return strings.Join(attrs, " ")
 }
 
-func (s *Style) DefString(op styleop, def *styledef) string {
-	switch op {
-	case styleFillNone:
-		return "fill: none"
-	case styleStrokeNone:
-		return "stroke: none"
-	case styleFillColor:
-		if _, exists := s.defs[styleFillNone]; exists == false {
-			return ColorString(op, def.Color)
-		}
-	case styleFillOpacity:
-		if _, exists := s.defs[styleFillNone]; exists == false {
-			return FloatString(op, def.Opacity)
-		}
-	case styleFillRule:
-		if _, exists := s.defs[styleFillNone]; exists == false {
-			return StyleString(op, def.Rule)
-		}
-	case styleStrokeColor:
-		if _, exists := s.defs[styleStrokeNone]; exists == false {
-			return ColorString(op, def.Color)
-		}
-	case styleStrokeOpacity:
-		if _, exists := s.defs[styleStrokeNone]; exists == false {
-			return FloatString(op, def.Opacity)
-		}
-	case styleStrokeWidth:
-		if _, exists := s.defs[styleStrokeNone]; exists == false {
-			return FloatString(op, def.Width)
-		}
-	case styleFontSize:
-		return UnitString(op, def.Width, def.Unit)
-	case styleTextAnchor:
-		return StyleString(op, def.Cap)
-	case styleLineCap:
-		if _, exists := s.defs[styleStrokeNone]; exists == false {
-			return StyleString(op, def.Cap)
-		}
-	case styleLineJoin:
-		if _, exists := s.defs[styleStrokeNone]; exists == false {
-			return StyleString(op, def.Cap)
-		}
-	case styleMiterLimit:
-		if _, exists := s.defs[styleStrokeNone]; exists == false {
-			return FloatString(op, def.Width)
-		}
-	}
-	// By default return empty string
-	return ""
-}
-
-func StyleString(name styleop, value interface{}) string {
-	return fmt.Sprintf("%v: %v", name, value)
+func UnitString(name styleop, value float32, unit data.Unit) string {
+	return fmt.Sprintf("%v: %s%s", name, f32.String(value), unit.String())
 }
