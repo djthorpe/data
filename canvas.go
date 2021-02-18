@@ -48,6 +48,9 @@ type Canvas interface {
 	// Implements CanvasGroup
 	CanvasGroup
 
+	// Create a group and attach elements to group
+	Group(...CanvasElement) CanvasGroup
+
 	// Drawing primitives
 	Circle(Point, float32) CanvasElement
 	Ellipse(Point, Size) CanvasElement
@@ -63,15 +66,16 @@ type Canvas interface {
 	CubicTo(pt, c1, c2 Point) CanvasPath
 	ClosePath() CanvasPath
 
+	// Transform primitives
+	Scale(Size) CanvasTransform
+	Translate(Point) CanvasTransform
+	Rotate(float32) CanvasTransform
+	RotateAround(float32, Point) CanvasTransform
+	SkewX(float32) CanvasTransform
+	SkewY(float32) CanvasTransform
+
 	/*
 
-		// Transform primitives
-		Scale(Size) CanvasTransform
-		Translate(Point) CanvasTransform
-		Rotate(float32) CanvasTransform
-		RotateAround(float32, Point) CanvasTransform
-		SkewX(float32) CanvasTransform
-		SkewY(float32) CanvasTransform
 
 		// Text primitives
 		Span(string) CanvasText
@@ -91,10 +95,9 @@ type Canvas interface {
 }
 
 type CanvasGroup interface {
-	//CanvasElement
+	CanvasElement
 
 	Desc(string) CanvasGroup
-	Group(...CanvasElement) CanvasGroup
 }
 
 type CanvasElement interface {

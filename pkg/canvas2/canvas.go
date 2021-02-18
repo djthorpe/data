@@ -16,6 +16,7 @@ import (
 
 type Canvas struct {
 	data.Document
+	*Element
 	origin data.Point
 	size   data.Size
 }
@@ -26,6 +27,7 @@ type Canvas struct {
 func NewCanvas(size data.Size, units data.Unit) data.Canvas {
 	this := new(Canvas)
 	this.Document = dom.NewDocumentNS("svg", data.XmlNamespaceSVG)
+	this.Element = &Element{this.Document, this}
 	this.origin = data.ZeroPoint
 	this.size = size
 

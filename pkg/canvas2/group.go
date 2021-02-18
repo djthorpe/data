@@ -6,7 +6,7 @@ import (
 	"github.com/djthorpe/data"
 )
 
-func (this *Canvas) Desc(cdata string) data.CanvasGroup {
+func (this *Element) Desc(cdata string) data.CanvasGroup {
 	cdata = strings.TrimSpace(cdata)
 
 	// Remove existing desc tags
@@ -35,14 +35,18 @@ func (this *Canvas) Desc(cdata string) data.CanvasGroup {
 }
 
 func (this *Canvas) Group(children ...data.CanvasElement) data.CanvasGroup {
-	g := this.Document.CreateElementNS("g", data.XmlNamespaceSVG)
+	g, err := this.NewElement("g")
+	if err != nil {
+		return nil
+	}
+	// Append children. If any children are nil, then return nil to bubble up
+	// any errors
 	for _, child := range children {
-		if err := g.AddChild(child.(*Element)); err != nil {
+		if child == nil {
+			return nil
+		} else if err := g.AddChild(child.(*Element).Node); err != nil {
 			return nil
 		}
-	}
-	if err := this.Document.AddChild(g); err != nil {
-		return nil
 	}
 	return g
 }

@@ -12,6 +12,7 @@ import (
 
 type Element struct {
 	data.Node
+	*Canvas
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -25,6 +26,7 @@ func (this *Canvas) NewElement(name string) (*Element, error) {
 		return nil, err
 	} else {
 		elem.Node = node
+		elem.Canvas = this
 		return elem, nil
 	}
 }

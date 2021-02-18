@@ -116,7 +116,7 @@ func (this *Node) RemoveAllChildren() error {
 
 // prevSibling returns the previous child element or nil
 func prevSibling(this data.Node) data.Node {
-	parent := this.Parent().(*Element)
+	parent, _ := this.Parent().(*Element)
 	if parent == nil {
 		return nil
 	}
@@ -135,7 +135,7 @@ func prevSibling(this data.Node) data.Node {
 }
 
 func nextSibling(this data.Node) data.Node {
-	parent := this.Parent().(*Element)
+	parent, _ := this.Parent().(*Element)
 	if parent == nil {
 		return nil
 	}

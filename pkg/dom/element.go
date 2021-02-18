@@ -2,8 +2,6 @@ package dom
 
 import (
 	"encoding/xml"
-	"fmt"
-	"regexp"
 	"strconv"
 	"strings"
 
@@ -20,13 +18,6 @@ type Element struct {
 	attro    []string
 	children []interface{}
 }
-
-/////////////////////////////////////////////////////////////////////
-// CONSTANTS
-
-var (
-	reAttrName = regexp.MustCompile("^[A-Za-z][A-Za-z0-9_-]*$")
-)
 
 /////////////////////////////////////////////////////////////////////
 // LIFECYCLE
@@ -52,6 +43,13 @@ func NewElementNS(name, ns string, parent *Element, document *Document) *Element
 	element.document = document
 	element.attrs = make(map[string]*xml.Attr)
 
+	// Register namespace if not empty and not defined in parent
+	if ns != "" {
+		if err := element.document.setTagNS(ns); err != nil {
+			return nil
+		}
+	}
+
 	// Return success
 	return element
 }
@@ -64,12 +62,39 @@ func (this *Element) Name() xml.Name {
 }
 
 func (this *Element) Attrs() []xml.Attr {
-	attrs := make([]xml.Attr, len(this.attro))
-	for i, key := range this.attro {
-		if key != "" {
-			attrs[i] = *(this.attrs[key])
+	attrs := make([]xml.Attr, 0, len(this.attro))
+
+	// Add namespace attributes onto the attributes for the root element
+	if this.IsRootElement() {
+		for ns, tag := range this.document.tag {
+			if tag != "" {
+				attrs = append(attrs, xml.Attr{
+					Name:  xml.Name{Space: "", Local: "xmlns:" + tag},
+					Value: ns,
+				})
+			}
 		}
 	}
+
+	// Convert attribute names to shorten the namespace prefix
+	for _, key := range this.attro {
+		// Removed attributes have empty string
+		if key != "" {
+			// Get attribute
+			attr := this.attrs[key]
+			if name, err := this.document.getTagNS(this, attr.Name); err != nil {
+				// Let's just not clean up if there are errors
+				attrs = append(attrs, *attr)
+			} else {
+				// Or else append a new shortened tag with prefix
+				attrs = append(attrs, xml.Attr{
+					Name:  name,
+					Value: attr.Value,
+				})
+			}
+		}
+	}
+
 	return attrs
 }
 
@@ -188,6 +213,13 @@ func (this *Element) SetAttrNS(name, ns string, value string) error {
 		return data.ErrBadParameter.WithPrefix("SetAttrNS ", strconv.Quote(name))
 	}
 
+	// Register tag for ns
+	if ns != "" {
+		if err := this.document.setTagNS(ns); err != nil {
+			return err
+		}
+	}
+
 	// Add attribute to order
 	key := attrKey(name, ns)
 	if _, exists := this.attrs[key]; exists == false {
@@ -231,9 +263,13 @@ func (this *Element) RemoveAttrNS(name, ns string) error {
 	return nil
 }
 
+func (this *Element) IsRootElement() bool {
+	return this == this.document.Element
+}
+
 func (this *Element) String() string {
 	if bytes, err := xml.Marshal(this); err != nil {
-		return fmt.Sprintln("Error: ", err)
+		panic(err)
 	} else {
 		return string(bytes)
 	}
@@ -243,10 +279,12 @@ func (this *Element) String() string {
 // XML ENCODING
 
 func (this *Element) MarshalXML(enc *xml.Encoder, start xml.StartElement) error {
-
-	// Start element
+	name, err := this.document.getTagNS(this, this.XMLName)
+	if err != nil {
+		return err
+	}
 	if err := enc.EncodeToken(xml.StartElement{
-		Name: this.XMLName,
+		Name: name,
 		Attr: this.Attrs(),
 	}); err != nil {
 		return err
@@ -259,7 +297,7 @@ func (this *Element) MarshalXML(enc *xml.Encoder, start xml.StartElement) error 
 		}
 		switch node := child.(type) {
 		case *Element:
-			if err := enc.EncodeElement(node, xml.StartElement{Name: node.XMLName, Attr: node.Attrs()}); err != nil {
+			if err := enc.EncodeElement(node, xml.StartElement{Name: name, Attr: node.Attrs()}); err != nil {
 				return err
 			}
 		case *Text:
@@ -276,7 +314,7 @@ func (this *Element) MarshalXML(enc *xml.Encoder, start xml.StartElement) error 
 	}
 
 	// End element
-	if err := enc.EncodeToken(xml.EndElement{Name: this.XMLName}); err != nil {
+	if err := enc.EncodeToken(xml.EndElement{Name: name}); err != nil {
 		return err
 	}
 

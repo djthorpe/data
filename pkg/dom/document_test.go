@@ -49,7 +49,7 @@ func Test_Document_002(t *testing.T) {
 	group := d.CreateElement("g")
 	title := d.CreateElement("title")
 	ta := d.CreateText("A")
-	tb := d.CreateText("B")
+	tb := d.CreateComment("B")
 	tc := d.CreateText("C")
 
 	CheckError(t, group.AddChild(title))
@@ -82,7 +82,7 @@ func Test_Document_002(t *testing.T) {
 	}
 
 	// Check output
-	if str := fmt.Sprint(d); str != "<svg xmlns=\"http://www.w3.org/2000/svg\"><g><title>AB</title>C</g></svg>" {
+	if str := fmt.Sprint(d); str != "<svg xmlns=\"http://www.w3.org/2000/svg\"><g><title>A<!--B--></title>C</g></svg>" {
 		t.Error("Unexpected: ", str)
 	}
 
@@ -129,7 +129,45 @@ func Test_Document_003(t *testing.T) {
 		t.Error("Unexpected: ", str)
 	}
 
+	if ta.PrevSibling() != nil {
+		t.Error("Unexpected return from PrevSibling")
+	}
+	if tb.PrevSibling() != ta {
+		t.Error("Unexpected return from PrevSibling")
+	}
+	if tc.PrevSibling() != tb {
+		t.Error("Unexpected return from PrevSibling")
+	}
+	if ta.NextSibling() != tb {
+		t.Error("Unexpected return from PrevSibling")
+	}
+	if tb.NextSibling() != tc {
+		t.Error("Unexpected return from PrevSibling")
+	}
+	if tc.NextSibling() != nil {
+		t.Error("Unexpected return from PrevSibling")
+	}
+
 	CheckError(t, group.RemoveChild(ta)) // order should be b,c
+
+	if ta.PrevSibling() != nil {
+		t.Error("Unexpected return from PrevSibling")
+	}
+	if tb.PrevSibling() != nil {
+		t.Error("Unexpected return from PrevSibling")
+	}
+	if tc.PrevSibling() != tb {
+		t.Error("Unexpected return from PrevSibling")
+	}
+	if ta.NextSibling() != nil {
+		t.Error("Unexpected return from PrevSibling")
+	}
+	if tb.NextSibling() != tc {
+		t.Error("Unexpected return from PrevSibling")
+	}
+	if tc.NextSibling() != nil {
+		t.Error("Unexpected return from PrevSibling")
+	}
 
 	// Validate
 	if len(group.Children()) != 2 || group.Children()[0] != tb || group.Children()[1] != tc {
@@ -241,7 +279,8 @@ func Test_Document_006(t *testing.T) {
 	}
 
 	// Check output
-	if str := fmt.Sprint(d); str != "<svg xmlns=\"http://www.w3.org/2000/svg\"><image xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"http://www.google.com/\"></image></svg>" {
+	comp := `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><image xlink:href="http://www.google.com/"></image></svg>`
+	if str := fmt.Sprint(d); str != comp {
 		t.Error("Unexpected: ", str)
 	}
 
@@ -572,5 +611,95 @@ func Test_Document_013(t *testing.T) {
 	if str := fmt.Sprint(d); str != "<xml foo2=\"bar2\"></xml>" {
 		t.Error("Unexpected: ", str)
 	}
-
 }
+
+func Test_Document_014(t *testing.T) {
+	d := dom.NewDocumentNS("html", data.XmlNamespaceXHTML)
+	if d == nil {
+		t.Fatal("Unexpected nil return from NewDocument")
+	}
+	if str := fmt.Sprint(d); str != `<html xmlns="http://www.w3.org/1999/xhtml"></html>` {
+		t.Error("Unexpected return: ", str)
+	} else {
+		t.Log(str)
+	}
+}
+
+func Test_Document_015(t *testing.T) {
+	d := dom.NewDocumentNS("html", data.XmlNamespaceXHTML)
+	if d == nil {
+		t.Fatal("Unexpected nil return from NewDocument")
+	}
+	CheckError(t, d.AddChild(d.CreateElementNS("head", data.XmlNamespaceXHTML)))
+	if str := fmt.Sprint(d); str != `<html xmlns="http://www.w3.org/1999/xhtml"><head></head></html>` {
+		t.Error("Unexpected return: ", str)
+	} else {
+		t.Log(str)
+	}
+}
+
+func Test_Document_016(t *testing.T) {
+	d := dom.NewDocumentNS("html", data.XmlNamespaceXHTML)
+	if d == nil {
+		t.Fatal("Unexpected nil return from NewDocument")
+	}
+	CheckError(t, d.AddChild(d.CreateElementNS("head", data.XmlNamespaceSVG)))
+	if str := fmt.Sprint(d); str != `<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg"><svg:head></svg:head></html>` {
+		t.Error("Unexpected return: ", str)
+	} else {
+		t.Log(str)
+	}
+}
+
+func Test_Document_017(t *testing.T) {
+	d := dom.NewDocumentNS("html", data.XmlNamespaceXHTML)
+	if d == nil {
+		t.Fatal("Unexpected nil return from NewDocument")
+	}
+	CheckError(t, d.AddChild(d.CreateElementNS("head", data.XmlNamespaceSVG+" svg")))
+	body := d.CreateElement("body")
+	CheckError(t, body.SetAttr("id", "id1"))
+	CheckError(t, body.SetAttrNS("id", data.XmlNamespaceSVG, "id2"))
+	CheckError(t, d.AddChild(body))
+	if str := fmt.Sprint(d); str != `<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg"><svg:head></svg:head><body id="id1" svg:id="id2"></body></html>` {
+		t.Error("Unexpected return: ", str)
+	} else {
+		t.Log(str)
+	}
+}
+
+func Test_Document_018(t *testing.T) {
+	d := dom.NewDocumentNS("html", data.XmlNamespaceXHTML)
+	if d == nil {
+		t.Fatal("Unexpected nil return from NewDocument")
+	}
+	CheckError(t, d.AddChild(d.CreateElementNS("head", data.XmlNamespaceSVG)))
+	body := d.CreateElement("body")
+	CheckError(t, body.SetAttr("id", "id1"))
+	CheckError(t, body.SetAttrNS("id", data.XmlNamespaceSVG, "id2"))
+	CheckError(t, d.AddChild(body))
+	if str := fmt.Sprint(d); str != `<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg"><svg:head></svg:head><body id="id1" svg:id="id2"></body></html>` {
+		t.Error("Unexpected return: ", str)
+	} else {
+		t.Log(str)
+	}
+}
+
+/*
+	CheckError(t, d.AddChild(d.CreateElementNS("body", data.XmlNamespaceSVG+" svg")))
+	CheckError(t, d.AddChild(d.CreateElementNS("div", data.XmlNamespaceXHTML)))
+	CheckError(t, d.AddChild(d.CreateElementNS("div", data.XmlNamespaceSVG)))
+
+	// I think the result should be something like:
+	// <html xmlns="...">
+	//   <head>...</head>
+	//   <svg:body xmlns:svg="...">
+	//     <div></div>
+	//     <svg:div></svg:div>
+	//   </svg:body>
+	// </html>
+
+	if str := fmt.Sprint(d); str != `<html xmlns="http://www.w3.org/1999/xhtml"><head></head></html>` {
+		t.Error("Unexpected return: ", str)
+	}
+*/

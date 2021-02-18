@@ -149,3 +149,14 @@ func Test_Canvas_009(t *testing.T) {
 		t.Error("Unexpected return, got: ", str)
 	}
 }
+
+func Test_Canvas_010(t *testing.T) {
+	c := canvas.NewCanvas(data.Size{16, 16}, data.PX)
+	if g := c.Group(c.Group(
+		c.Circle(data.Point{0, 0}, 10),
+	).Id("test")); g == nil {
+		t.Error("Unexpected nil from c.Group")
+	} else if str := fmt.Sprint(g); str != "<g><g id=\"test\"><circle x=\"0\" y=\"0\" r=\"10\"></circle></g></g>" {
+		t.Error("Unexpected return, got: ", str)
+	}
+}
