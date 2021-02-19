@@ -1,9 +1,11 @@
 package canvas
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/djthorpe/data"
+	"github.com/djthorpe/data/pkg/f32"
 )
 
 func (this *Element) Desc(cdata string) data.CanvasGroup {
@@ -34,6 +36,27 @@ func (this *Element) Desc(cdata string) data.CanvasGroup {
 	return this
 }
 
+func (this *Element) OrientationAngle(angle float32) data.CanvasGroup {
+	// Return nil if the element is not a marker
+	fmt.Println(this.Name())
+	switch angle {
+	case 0:
+		if err := this.SetAttr("orient", "auto"); err != nil {
+			return nil
+		}
+	case 180:
+		if err := this.SetAttr("orient", "auto-start-reverse"); err != nil {
+			return nil
+		}
+	default:
+		if err := this.SetAttr("orient", f32.String(angle)); err != nil {
+			return nil
+		}
+	}
+	// Return group
+	return this
+}
+
 func (this *Canvas) Group(children ...data.CanvasElement) data.CanvasGroup {
 	g, err := this.NewElement("g")
 	if err != nil {
@@ -49,4 +72,36 @@ func (this *Canvas) Group(children ...data.CanvasElement) data.CanvasGroup {
 		}
 	}
 	return g
+}
+
+func (this *Canvas) Marker(pt data.Point, sz data.Size, children ...data.CanvasElement) data.CanvasGroup {
+	m, err := this.NewElement("marker")
+	if err != nil {
+		return nil
+	}
+
+	// Set attributes on element
+	if pt != data.ZeroPoint {
+		m.SetAttr("refX", f32.String(pt.X))
+		m.SetAttr("refY", f32.String(pt.Y))
+	}
+	if sz != data.ZeroSize {
+		m.SetAttr("markerWidth", f32.String(sz.W))
+		m.SetAttr("markerHeight", f32.String(sz.H))
+	}
+	// Set auto
+	if m.OrientationAngle(0) == nil {
+		return nil
+	}
+
+	// Append children. If any children are nil, then return nil to bubble up
+	// any errors
+	for _, child := range children {
+		if child == nil {
+			return nil
+		} else if err := m.AddChild(child.(*Element).Node); err != nil {
+			return nil
+		}
+	}
+	return m
 }

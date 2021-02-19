@@ -24,10 +24,11 @@ type styledef struct {
 	Opacity float32
 	Width   float32
 	Unit    data.Unit
-	Align   data.TextAlign
+	Align   data.Align
 	Cap     data.LineCap
 	Join    data.LineJoin
 	Rule    data.FillRule
+	Uri     string
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -47,9 +48,12 @@ const (
 	lineJoin
 	miterLimit
 	fillRule
+	markerStart
+	markerMid
+	markerEnd
 	styleNone styleop = 0
 	styleMin          = fillNone
-	styleMax          = fillRule
+	styleMax          = markerEnd
 )
 
 /////////////////////////////////////////////////////////////////////
@@ -83,7 +87,7 @@ func (this *Style) setDef(def *styledef) error {
 		}
 		if str, err := v.StyleString(def); err != nil {
 			return err
-		} else {
+		} else if str != "" {
 			this.defs[v] = str
 		}
 	}
@@ -134,6 +138,20 @@ func (*Canvas) MiterLimit(limit float32) data.CanvasStyle {
 	return &styledef{Op: miterLimit, Width: limit}
 }
 
+func (*Canvas) UseMarker(pos data.Align, uri string) data.CanvasStyle {
+	op := markerStart | markerMid | markerEnd
+	if pos != 0 && pos&data.Start == 0 {
+		op ^= markerStart
+	}
+	if pos != 0 && pos&data.Middle == 0 {
+		op ^= markerMid
+	}
+	if pos != 0 && pos&data.End == 0 {
+		op ^= markerEnd
+	}
+	return &styledef{Op: op, Uri: uri}
+}
+
 /////////////////////////////////////////////////////////////////////
 // STRINGIFY
 
@@ -163,6 +181,12 @@ func (f styleop) String() string {
 		return "stroke-linejoin"
 	case miterLimit:
 		return "stroke-miterlimit"
+	case markerStart:
+		return "marker-start"
+	case markerMid:
+		return "marker-mid"
+	case markerEnd:
+		return "marker-end"
 	default:
 		return "[?? invalid styleop value]"
 	}
@@ -184,6 +208,8 @@ func (f styleop) StyleString(args *styledef) (string, error) {
 		return fmt.Sprint(f, ":", args.Join, ";"), nil
 	case fillRule:
 		return fmt.Sprint(f, ":", args.Rule, ";"), nil
+	case markerStart, markerMid, markerEnd:
+		return fmt.Sprint(f, ":", args.Uri, ";"), nil
 	default:
 		return "", data.ErrBadParameter.WithPrefix("SetStyle: ", f)
 	}

@@ -48,6 +48,46 @@ func (this *Canvas) Line(p1, p2 data.Point) data.CanvasElement {
 	return elem
 }
 
+func (this *Canvas) Polyline(pts ...data.Point) data.CanvasElement {
+	elem, err := this.NewElement("polyline")
+	if err != nil {
+		return nil
+	}
+
+	points := make([]string, 0, len(pts))
+	for _, pt := range pts {
+		points = append(points, f32.String(pt.X, pt.Y))
+	}
+
+	if attr := strings.Join(points, " "); attr != "" {
+		if err := elem.SetAttr("points", attr); err != nil {
+			return nil
+		}
+	}
+
+	return elem
+}
+
+func (this *Canvas) Polygon(pts ...data.Point) data.CanvasElement {
+	elem, err := this.NewElement("polygon")
+	if err != nil {
+		return nil
+	}
+
+	points := make([]string, 0, len(pts))
+	for _, pt := range pts {
+		points = append(points, f32.String(pt.X, pt.Y))
+	}
+
+	if attr := strings.Join(points, " "); attr != "" {
+		if err := elem.SetAttr("points", attr); err != nil {
+			return nil
+		}
+	}
+
+	return elem
+}
+
 func (this *Canvas) Rect(pt data.Point, sz data.Size) data.CanvasElement {
 	elem, err := this.NewElement("rect")
 	if err != nil {
@@ -62,6 +102,7 @@ func (this *Canvas) Rect(pt data.Point, sz data.Size) data.CanvasElement {
 }
 
 func (this *Canvas) Text(data.Point, ...data.CanvasText) data.CanvasElement {
+	// TODO
 	return nil
 }
 
@@ -83,9 +124,12 @@ func (this *Canvas) Path(paths ...data.CanvasPath) data.CanvasElement {
 	}
 
 	// Set attribute
-	if err := elem.SetAttr("d", strings.Join(d, " ")); err != nil {
-		return nil
-	} else {
-		return elem
+	if attr := strings.Join(d, " "); attr != "" {
+		if err := elem.SetAttr("d", attr); err != nil {
+			return nil
+		}
 	}
+
+	// Return relement
+	return elem
 }

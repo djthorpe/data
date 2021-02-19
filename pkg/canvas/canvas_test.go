@@ -353,3 +353,113 @@ func Test_Canvas_024(t *testing.T) {
 		t.Error("Unexpected return, got: ", str)
 	}
 }
+
+func Test_Canvas_025(t *testing.T) {
+	c := canvas.NewCanvas(data.Size{16, 16}, data.PX)
+	m := c.Marker(data.Point{5, 5}, data.Size{6, 6}, c.Path())
+	if m == nil {
+		t.Error("Unexpected nil from c.Group")
+	} else if str := fmt.Sprint(m); str != `<marker refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path></path></marker>` {
+		t.Error("Unexpected return, got: ", str)
+	}
+	if m := m.OrientationAngle(0); m == nil {
+		t.Error("Unexpected nil from c.Group")
+	} else if str := fmt.Sprint(m); str != `<marker refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path></path></marker>` {
+		t.Error("Unexpected return, got: ", str)
+	}
+	if m := m.OrientationAngle(45); m == nil {
+		t.Error("Unexpected nil from c.Group")
+	} else if str := fmt.Sprint(m); str != `<marker refX="5" refY="5" markerWidth="6" markerHeight="6" orient="45"><path></path></marker>` {
+		t.Error("Unexpected return, got: ", str)
+	}
+	if m := m.OrientationAngle(0); m == nil {
+		t.Error("Unexpected nil from c.Group")
+	} else if str := fmt.Sprint(m); str != `<marker refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path></path></marker>` {
+		t.Error("Unexpected return, got: ", str)
+	}
+	if m := m.OrientationAngle(180); m == nil {
+		t.Error("Unexpected nil from c.Group")
+	} else if str := fmt.Sprint(m); str != `<marker refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path></path></marker>` {
+		t.Error("Unexpected return, got: ", str)
+	}
+}
+
+func Test_Canvas_026(t *testing.T) {
+	c := canvas.NewCanvas(data.Size{16, 16}, data.PX)
+	if l := c.Polyline(); l == nil {
+		t.Error("Unexpected nil from c.Polyline")
+	} else if str := fmt.Sprint(l); str != `<polyline></polyline>` {
+		t.Error("Unexpected return, got: ", str)
+	}
+
+	if l := c.Polyline(data.ZeroPoint); l == nil {
+		t.Error("Unexpected nil from c.Polyline")
+	} else if str := fmt.Sprint(l); str != `<polyline points="0,0"></polyline>` {
+		t.Error("Unexpected return, got: ", str)
+	}
+
+	if l := c.Polyline(data.ZeroPoint, data.Point{5, 5}); l == nil {
+		t.Error("Unexpected nil from c.Polyline")
+	} else if str := fmt.Sprint(l); str != `<polyline points="0,0 5,5"></polyline>` {
+		t.Error("Unexpected return, got: ", str)
+	}
+}
+
+func Test_Canvas_027(t *testing.T) {
+	c := canvas.NewCanvas(data.Size{16, 16}, data.PX)
+	if l := c.Polygon(); l == nil {
+		t.Error("Unexpected nil from c.Polygon")
+	} else if str := fmt.Sprint(l); str != `<polygon></polygon>` {
+		t.Error("Unexpected return, got: ", str)
+	}
+
+	if l := c.Polygon(data.ZeroPoint); l == nil {
+		t.Error("Unexpected nil from c.Polygon")
+	} else if str := fmt.Sprint(l); str != `<polygon points="0,0"></polygon>` {
+		t.Error("Unexpected return, got: ", str)
+	}
+
+	if l := c.Polygon(data.ZeroPoint, data.Point{5, 5}); l == nil {
+		t.Error("Unexpected nil from c.Polygon")
+	} else if str := fmt.Sprint(l); str != `<polygon points="0,0 5,5"></polygon>` {
+		t.Error("Unexpected return, got: ", str)
+	}
+}
+
+func Test_Canvas_028(t *testing.T) {
+	c := canvas.NewCanvas(data.Size{16, 16}, data.PX)
+	if l := c.Polygon().Style(
+		c.UseMarker(data.Start, "start"),
+		c.UseMarker(data.Middle, "mid"),
+		c.UseMarker(data.End, "end"),
+	); l == nil {
+		t.Error("Unexpected nil from c.Polygon")
+	} else if str := fmt.Sprint(l); str != `<polygon style="marker-start:start; marker-mid:mid; marker-end:end;"></polygon>` {
+		t.Error("Unexpected return, got: ", str)
+	}
+
+	if l := c.Polygon().Style(
+		c.UseMarker(data.Start|data.End, "both"),
+		c.UseMarker(data.Middle, "mid"),
+	); l == nil {
+		t.Error("Unexpected nil from c.Polygon")
+	} else if str := fmt.Sprint(l); str != `<polygon style="marker-start:both; marker-mid:mid; marker-end:both;"></polygon>` {
+		t.Error("Unexpected return, got: ", str)
+	}
+
+	if l := c.Polygon().Style(
+		c.UseMarker(0, "all"),
+	); l == nil {
+		t.Error("Unexpected nil from c.Polygon")
+	} else if str := fmt.Sprint(l); str != `<polygon style="marker-start:all; marker-mid:all; marker-end:all;"></polygon>` {
+		t.Error("Unexpected return, got: ", str)
+	}
+
+	if l := c.Polygon().Style(
+		c.UseMarker(data.Middle, "one"),
+	); l == nil {
+		t.Error("Unexpected nil from c.Polygon")
+	} else if str := fmt.Sprint(l); str != `<polygon style="marker-mid:one;"></polygon>` {
+		t.Error("Unexpected return, got: ", str)
+	}
+}

@@ -18,12 +18,12 @@ type Size struct {
 }
 
 type (
-	Unit      int
-	TextAlign int
-	LineCap   int
-	LineJoin  int
-	FillRule  int
-	Writer    int
+	Unit     int
+	Align    int
+	LineCap  int
+	LineJoin int
+	FillRule int
+	Writer   int
 )
 
 /////////////////////////////////////////////////////////////////////
@@ -51,6 +51,9 @@ type Canvas interface {
 	// Create a group and attach elements to group
 	Group(...CanvasElement) CanvasGroup
 
+	// Define a marker and attach elements to marker
+	Marker(Point, Size, ...CanvasElement) CanvasGroup
+
 	// Drawing primitives
 	Circle(Point, float32) CanvasElement
 	Ellipse(Point, Size) CanvasElement
@@ -58,6 +61,8 @@ type Canvas interface {
 	Rect(Point, Size) CanvasElement
 	Text(Point, ...CanvasText) CanvasElement
 	Path(...CanvasPath) CanvasElement
+	Polyline(...Point) CanvasElement
+	Polygon(...Point) CanvasElement
 
 	// Path primitives
 	MoveTo(Point) CanvasPath
@@ -84,6 +89,7 @@ type Canvas interface {
 	LineCap(LineCap) CanvasStyle
 	LineJoin(LineJoin) CanvasStyle
 	MiterLimit(float32) CanvasStyle
+	UseMarker(Align, string) CanvasStyle
 
 	/*
 		// Text primitives
@@ -97,6 +103,9 @@ type CanvasGroup interface {
 	CanvasElement
 
 	Desc(string) CanvasGroup
+
+	// Marker orientation, when not set or zero, uses "auto"
+	OrientationAngle(float32) CanvasGroup
 }
 
 type CanvasElement interface {
@@ -133,7 +142,7 @@ const (
 )
 
 const (
-	Start TextAlign = iota
+	Start Align = (1 << iota)
 	Middle
 	End
 )
@@ -181,8 +190,8 @@ func (s Size) UnitString(u Unit) (string, string) {
 	return fmt.Sprint(s.W, u.String()), fmt.Sprint(s.H, u.String())
 }
 
-func (ta TextAlign) String() string {
-	switch ta {
+func (a Align) String() string {
+	switch a {
 	case Middle:
 		return "middle"
 	case End:
