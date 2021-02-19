@@ -1,6 +1,7 @@
 package canvas
 
 import (
+	"net/url"
 	"strings"
 
 	"github.com/djthorpe/data"
@@ -104,6 +105,21 @@ func (this *Canvas) Rect(pt data.Point, sz data.Size) data.CanvasElement {
 func (this *Canvas) Text(data.Point, ...data.CanvasText) data.CanvasElement {
 	// TODO
 	return nil
+}
+
+func (this *Canvas) Image(pt data.Point, sz data.Size, u string) data.CanvasElement {
+	if url, err := url.Parse(u); err != nil {
+		return nil
+	} else if elem, err := this.NewElement("image"); err != nil {
+		return nil
+	} else {
+		elem.SetAttr("x", f32.String(pt.X))
+		elem.SetAttr("y", f32.String(pt.Y))
+		elem.SetAttr("width", f32.String(sz.W))
+		elem.SetAttr("height", f32.String(sz.H))
+		elem.SetAttr("src", url.String())
+		return elem
+	}
 }
 
 func (this *Canvas) Path(paths ...data.CanvasPath) data.CanvasElement {

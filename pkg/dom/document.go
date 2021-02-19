@@ -99,6 +99,9 @@ func (this *Document) WriteEx(w io.Writer, opts data.DOMOption) error {
 			return err
 		}
 	}
+	if opts.Is(data.DOMWriteDefaultNamespace) {
+		fmt.Println("TODO: DOMWriteDefaultNamespace")
+	}
 	if err := enc.Encode(this.Element); err != nil {
 		return err
 	}

@@ -59,10 +59,11 @@ type Canvas interface {
 	Ellipse(Point, Size) CanvasElement
 	Line(Point, Point) CanvasElement
 	Rect(Point, Size) CanvasElement
-	Text(Point, ...CanvasText) CanvasElement
 	Path(...CanvasPath) CanvasElement
 	Polyline(...Point) CanvasElement
 	Polygon(...Point) CanvasElement
+	Text(Point, ...CanvasText) CanvasElement // TODO
+	Image(Point, Size, string) CanvasElement
 
 	// Path primitives
 	MoveTo(Point) CanvasPath

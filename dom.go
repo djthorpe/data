@@ -62,9 +62,10 @@ type Node interface {
 // CONSTANTS
 
 const (
-	DOMWriteDirective    DOMOption = (1 << iota) // Write <?xml?> at top
-	DOMWriteIndentTab                            // Indent output with tabs
-	DOMWriteIndentSpace2                         // Indent output with two spaces
+	DOMWriteDirective        DOMOption = (1 << iota) // Write <?xml?> at top
+	DOMWriteIndentTab                                // Indent output with tabs
+	DOMWriteIndentSpace2                             // Indent output with two spaces
+	DOMWriteDefaultNamespace                         // Write default namespace attribute
 )
 
 const (

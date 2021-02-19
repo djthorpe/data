@@ -32,6 +32,7 @@ The third argument provides options which can affect how the document is parsed:
 * `data.DOMWriteDirective` writes the XML declaration header when using `Write`;
 * `data.DOMWriteIndentTab` indents XML output with tabs when using `Write`;
 * `data.DOMWriteIndentSpace2` indents XML output with spaces when using `Write`.
+* `data.DOMWriteDefaultNamespace` writes the default namespace attribute \(`xmlns="..."`)\ on the root element when it is set, otherwise omits it.
 
 Elements, text and comments can be created using the following methods:
 
@@ -131,4 +132,15 @@ func main() {
 ```
 
 The node argument to the callback method are always elements \(as opposed to text and comment nodes\), and it is assumed your validation function will validate both the attributes and children of the node.
+
+## Limitations
+
+The following limitations apply to creating and parsing XML documents:
+
+  * Declaring a __Namespace__ is only supported at the root element level
+    when writing the namespace attribute
+  * The prefix associated with a __Namespace__ cannot be user-defined;
+  * Node types other than element, text or comment are not supported.
+  * Validation of elements and attributes are currently not covered within
+    this package. A schema package could be added later to perform validation.
 

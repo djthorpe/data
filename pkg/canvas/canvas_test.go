@@ -463,3 +463,13 @@ func Test_Canvas_028(t *testing.T) {
 		t.Error("Unexpected return, got: ", str)
 	}
 }
+
+func Test_Canvas_029(t *testing.T) {
+	c := canvas.NewCanvas(data.Size{16, 16}, data.PX)
+	url := "https://mdn.mozillademos.org/files/6457/mdn_logo_only_color.png"
+	if l := c.Image(data.ZeroPoint, data.Size{16, 16}, url); l == nil {
+		t.Error("Unexpected nil from c.Image")
+	} else if str := fmt.Sprint(l); str != `<image x="0" y="0" width="16" height="16" href="https://mdn.mozillademos.org/files/6457/mdn_logo_only_color.png"></image>` {
+		t.Error("Unexpected return, got: ", str)
+	}
+}

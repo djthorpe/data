@@ -139,6 +139,9 @@ func (*Canvas) MiterLimit(limit float32) data.CanvasStyle {
 }
 
 func (*Canvas) UseMarker(pos data.Align, uri string) data.CanvasStyle {
+	// TODO:
+	// if uri is #?([a-zA-Z\-]+[a-zA-Z0-9\-]*) (ie, an id) then
+	// wrap it in url(#id)
 	op := markerStart | markerMid | markerEnd
 	if pos != 0 && pos&data.Start == 0 {
 		op ^= markerStart
