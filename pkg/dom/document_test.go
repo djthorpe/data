@@ -656,7 +656,7 @@ func Test_Document_017(t *testing.T) {
 	if d == nil {
 		t.Fatal("Unexpected nil return from NewDocument")
 	}
-	CheckError(t, d.AddChild(d.CreateElementNS("head", data.XmlNamespaceSVG+" svg")))
+	CheckError(t, d.AddChild(d.CreateElementNS("head", data.XmlNamespaceSVG)))
 	body := d.CreateElement("body")
 	CheckError(t, body.SetAttr("id", "id1"))
 	CheckError(t, body.SetAttrNS("id", data.XmlNamespaceSVG, "id2"))

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/djthorpe/data"
@@ -31,8 +30,7 @@ const (
 )
 
 var (
-	reTagNSName = regexp.MustCompile("^[A-Za-z][A-Za-z0-9]*$")
-	reAttrName  = regexp.MustCompile("^[A-Za-z][A-Za-z0-9_-]*$")
+	reAttrName = regexp.MustCompile("^[A-Za-z][A-Za-z0-9_-]*$")
 )
 
 /////////////////////////////////////////////////////////////////////
@@ -179,32 +177,23 @@ func (this *Document) getAttrId(value, ns string) *Element {
 	}
 }
 
-func (this *Document) setTagNS(ns string) error {
-	// Get prefix and namespace
-	prefix, ns, err := parseTagNS(ns)
-	if err != nil {
-		return err
+func (this *Document) setTagNS(element *Element, ns string) string {
+	if _, exists := this.tag[ns]; exists == false {
+		this.tag[ns] = this.newTagNS(element, ns)
 	}
-	otherprefix, exists := this.tag[ns]
-	if exists == false {
-		if this.hasTagNS(prefix) {
-			this.tag[ns] = this.newTagNS(ns)
-		} else {
-			this.tag[ns] = prefix
-		}
-		return nil
-	} else if prefix == "" {
-		return nil
-	} else if otherprefix != prefix {
-		return data.ErrBadParameter.WithPrefix("setTagNS: ", prefix)
-	} else {
-		// Probably need to fix this later!
-		return data.ErrInternalAppError.WithPrefix("setTagNS: Unhandled condition")
-	}
+	return this.tag[ns]
 }
 
-func (this *Document) newTagNS(ns string) string {
-	var prefix = "ns"
+func (this *Document) newTagNS(element *Element, ns string) string {
+	var prefix string
+	if element.parent == nil {
+		prefix = ""
+	} else {
+		prefix = "ns"
+	}
+	if this.hasTagNS(prefix) == false {
+		return prefix
+	}
 	if tag, exists := xmlNs[ns]; exists {
 		prefix = tag
 	}
@@ -233,33 +222,15 @@ func (this *Document) getTagNS(element *Element, name xml.Name) (xml.Name, error
 	if name.Space == "" {
 		return name, nil
 	}
-	if tag, ns, err := parseTagNS(name.Space); err != nil {
-		return name, err
-	} else if othertag, exists := this.tag[ns]; exists == false {
-		return name, data.ErrNotFound.WithPrefix("GetTagNS: ", strconv.Quote(name.Space))
-	} else if tag != "" && othertag != tag {
-		return name, data.ErrBadParameter.WithPrefix("GetTagNS: ", strconv.Quote(tag))
-	} else {
-		// Add prefix to the tag name
-		if othertag != "" {
-			name.Local = othertag + ":" + name.Local
-		}
-		// If not root tag, remove the name.Space
-		if element.IsRootElement() == false {
-			name.Space = ""
-		}
+	// Add prefix to the tag name
+	if prefix := this.setTagNS(element, name.Space); prefix != "" {
+		name.Local = prefix + ":" + name.Local
+	}
+	// If not root tag, remove the name.Space
+	if element.IsRootElement() == false {
+		name.Space = ""
 	}
 
 	// Return success
 	return name, nil
-}
-
-func parseTagNS(ns string) (string, string, error) {
-	if nsTag := strings.SplitN(ns, " ", 2); len(nsTag) == 1 {
-		return "", nsTag[0], nil
-	} else if reTagNSName.MatchString(nsTag[1]) == false {
-		return "", "", data.ErrBadParameter.WithPrefix("ParseTagNS: ", strconv.Quote(ns))
-	} else {
-		return nsTag[1], nsTag[0], nil
-	}
 }

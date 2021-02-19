@@ -1,12 +1,13 @@
 package canvas_test
 
 import (
+	"fmt"
 	"os"
 	"strings"
 	"testing"
 
 	data "github.com/djthorpe/data"
-	canvas "github.com/djthorpe/data/pkg/canvas2"
+	canvas "github.com/djthorpe/data/pkg/canvas"
 )
 
 const (
@@ -29,7 +30,9 @@ func Test_Read_001(t *testing.T) {
 
 	// Read SVG
 	if c2, err := canvas.Read(data.SVG, strings.NewReader(b.String())); err != nil {
-		t.Fatal(err)
+		t.Error(err)
+	} else if str := fmt.Sprint(c2); str != `<svg xmlns="http://www.w3.org/2000/svg" width="16px" height="16px" viewBox="0 0 16 16" version="1.1"><title>Hello, World</title></svg>` {
+		t.Error("Unexpected return: ", str)
 	} else {
 		t.Log(c2)
 	}

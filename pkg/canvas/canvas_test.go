@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	data "github.com/djthorpe/data"
-	canvas "github.com/djthorpe/data/pkg/canvas2"
-	"github.com/djthorpe/data/pkg/color"
+	canvas "github.com/djthorpe/data/pkg/canvas"
+	color "github.com/djthorpe/data/pkg/color"
 )
 
 func CheckError(t *testing.T, err error) {

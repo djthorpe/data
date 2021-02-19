@@ -3,6 +3,7 @@ package dom
 import (
 	"bytes"
 	"encoding/xml"
+	"fmt"
 	"io"
 	"strconv"
 
@@ -93,6 +94,9 @@ func (ctx *context) Pop() *Element {
 }
 
 func (ctx *context) StartElement(start xml.StartElement, node *Element) error {
+	// Namespace
+	fmt.Println("space=", start.Name.Space)
+
 	// Create element
 	if node == nil {
 		node = NewElementNS(start.Name.Local, start.Name.Space, nil, ctx.document)

@@ -2,6 +2,7 @@ package dom
 
 import (
 	"encoding/xml"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -43,11 +44,9 @@ func NewElementNS(name, ns string, parent *Element, document *Document) *Element
 	element.document = document
 	element.attrs = make(map[string]*xml.Attr)
 
-	// Register namespace if not empty and not defined in parent
+	// Register namespace in document if not empty
 	if ns != "" {
-		if err := element.document.setTagNS(ns); err != nil {
-			return nil
-		}
+		element.document.setTagNS(element, ns)
 	}
 
 	// Return success
@@ -215,9 +214,8 @@ func (this *Element) SetAttrNS(name, ns string, value string) error {
 
 	// Register tag for ns
 	if ns != "" {
-		if err := this.document.setTagNS(ns); err != nil {
-			return err
-		}
+		prefix := this.document.setTagNS(this, ns)
+		fmt.Println("TODO SET NS for ATTR", name, "=>", ns, "=>", prefix)
 	}
 
 	// Add attribute to order
