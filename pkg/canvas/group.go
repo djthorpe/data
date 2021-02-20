@@ -1,7 +1,6 @@
 package canvas
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/djthorpe/data"
@@ -21,10 +20,37 @@ func (this *Canvas) Group(children ...data.CanvasElement) data.CanvasGroup {
 	for _, child := range children {
 		if child == nil {
 			return nil
-		} else if err := g.AddChild(child.(*Element).Node); err != nil {
+		} else if elem, ok := child.(*Element); ok == false {
+			return nil
+		} else if err := g.AddChild(elem.Node); err != nil {
 			return nil
 		}
 	}
+	return g
+}
+
+func (this *Canvas) Defs(children ...data.CanvasElement) data.CanvasGroup {
+	// Create a defs element
+	g, err := this.NewElement("defs")
+	if err != nil {
+		return nil
+	}
+
+	// Append children
+	for _, child := range children {
+		if child == nil {
+			return nil
+		} else if elem, ok := child.(*Element); ok == false {
+			return nil
+		} else if err := g.AddChild(elem.Node); err != nil {
+			return nil
+		}
+	}
+
+	// Move defs to the first element of the canvas
+	this.InsertChildBefore(g, this.FirstChild())
+
+	// Return canvas group
 	return g
 }
 
@@ -53,7 +79,9 @@ func (this *Canvas) Marker(pt data.Point, sz data.Size, children ...data.CanvasE
 	for _, child := range children {
 		if child == nil {
 			return nil
-		} else if err := m.AddChild(child.(*Element).Node); err != nil {
+		} else if elem, ok := child.(*Element); ok == false {
+			return nil
+		} else if err := m.AddChild(elem.Node); err != nil {
 			return nil
 		}
 	}
@@ -89,8 +117,9 @@ func (this *Element) Desc(cdata string) data.CanvasGroup {
 }
 
 func (this *Element) OrientationAngle(angle float32) data.CanvasGroup {
-	// Return nil if the element is not a marker
-	fmt.Println("TODO:", this.Name())
+	if this.isElement("marker") == false {
+		return nil
+	}
 	switch angle {
 	case 0:
 		if err := this.SetAttr("orient", "auto"); err != nil {

@@ -28,6 +28,9 @@ type styledef struct {
 	Cap     data.LineCap
 	Join    data.LineJoin
 	Rule    data.FillRule
+	Font    string
+	Style   data.FontVariant
+	Weight  data.FontVariant
 	Uri     string
 }
 
@@ -42,7 +45,6 @@ const (
 	strokeColor
 	strokeOpacity
 	strokeWidth
-	fontSize
 	textAnchor
 	lineCap
 	lineJoin
@@ -51,9 +53,13 @@ const (
 	markerStart
 	markerMid
 	markerEnd
+	fontFamily
+	fontSize
+	fontWeight
+	fontStyle
 	styleNone styleop = 0
 	styleMin          = fillNone
-	styleMax          = markerEnd
+	styleMax          = fontStyle
 )
 
 /////////////////////////////////////////////////////////////////////
@@ -138,10 +144,11 @@ func (*Canvas) MiterLimit(limit float32) data.CanvasStyle {
 	return &styledef{Op: miterLimit, Width: limit}
 }
 
-func (*Canvas) UseMarker(pos data.Align, uri string) data.CanvasStyle {
-	// TODO:
-	// if uri is #?([a-zA-Z\-]+[a-zA-Z0-9\-]*) (ie, an id) then
-	// wrap it in url(#id)
+func (this *Canvas) UseMarker(pos data.Align, uri string) data.CanvasStyle {
+	// if uri is #?([a-zA-Z\-]+[a-zA-Z0-9\-]*) then wrap it in url(#id)
+	if this.isAttrId(uri) {
+		uri = "url(#" + strings.TrimPrefix(uri, "#") + ")"
+	}
 	op := markerStart | markerMid | markerEnd
 	if pos != 0 && pos&data.Start == 0 {
 		op ^= markerStart
@@ -153,6 +160,86 @@ func (*Canvas) UseMarker(pos data.Align, uri string) data.CanvasStyle {
 		op ^= markerEnd
 	}
 	return &styledef{Op: op, Uri: uri}
+}
+
+func (*Canvas) FontSize(width float32, unit data.Unit) data.CanvasStyle {
+	return &styledef{
+		Op:    fontSize,
+		Width: f32.Abs(width),
+		Unit:  unit,
+	}
+}
+
+func (*Canvas) FontFamily(family string) data.CanvasStyle {
+	return &styledef{
+		Op:   fontFamily,
+		Font: strings.TrimSpace(family),
+	}
+}
+
+func (*Canvas) TextAnchor(align data.Align) data.CanvasStyle {
+	switch align {
+	case data.End, data.Middle, data.Start:
+		return &styledef{
+			Op:    textAnchor,
+			Align: align,
+		}
+	default:
+		return &styledef{
+			Op:    textAnchor,
+			Align: data.Start,
+		}
+	}
+}
+
+func (*Canvas) FontVariant(variant data.FontVariant) data.CanvasStyle {
+	op := &styledef{}
+	// font-style
+	switch {
+	case variant&data.Italic == data.Italic:
+		op.Op |= fontStyle
+		op.Style = data.Italic
+	case variant&data.Oblique == data.Oblique:
+		op.Op |= fontStyle
+		op.Style = data.Oblique
+	}
+	// font-weight
+	switch {
+	case variant&data.Thin == data.Thin:
+		op.Op |= fontWeight
+		op.Weight = data.Thin
+	case variant&data.ExtraLight == data.ExtraLight:
+		op.Op |= fontWeight
+		op.Weight = data.ExtraLight
+	case variant&data.Light == data.Light:
+		op.Op |= fontWeight
+		op.Weight = data.Light
+	case variant&data.Medium == data.Medium:
+		op.Op |= fontWeight
+		op.Weight = data.Medium
+	case variant&data.SemiBold == data.SemiBold:
+		op.Op |= fontWeight
+		op.Weight = data.SemiBold
+	case variant&data.Bold == data.Bold:
+		op.Op |= fontWeight
+		op.Weight = data.Bold
+	case variant&data.ExtraBold == data.ExtraBold:
+		op.Op |= fontWeight
+		op.Weight = data.ExtraBold
+	case variant&data.Black == data.Black:
+		op.Op |= fontWeight
+		op.Weight = data.Black
+	case variant&data.Lighter == data.Lighter:
+		op.Op |= fontWeight
+		op.Weight = data.Lighter
+	case variant&data.Bolder == data.Bolder:
+		op.Op |= fontWeight
+		op.Weight = data.Bolder
+	case variant&data.Regular == data.Regular:
+		op.Op |= fontWeight
+		op.Weight = data.Regular
+	}
+	return op
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -174,8 +261,6 @@ func (f styleop) String() string {
 		return "stroke-opacity"
 	case strokeWidth:
 		return "stroke-width"
-	case fontSize:
-		return "font-size"
 	case textAnchor:
 		return "text-anchor"
 	case lineCap:
@@ -190,6 +275,14 @@ func (f styleop) String() string {
 		return "marker-mid"
 	case markerEnd:
 		return "marker-end"
+	case fontSize:
+		return "font-size"
+	case fontFamily:
+		return "font-family"
+	case fontWeight:
+		return "font-weight"
+	case fontStyle:
+		return "font-style"
 	default:
 		return "[?? invalid styleop value]"
 	}
@@ -198,21 +291,31 @@ func (f styleop) String() string {
 func (f styleop) StyleString(args *styledef) (string, error) {
 	switch f {
 	case fillNone, strokeNone:
-		return fmt.Sprint(f, ":none;"), nil
+		return fmt.Sprint(f, ": none;"), nil
 	case fillColor, strokeColor:
-		return fmt.Sprint(f, ":", color.String(args.Color), ";"), nil
+		return fmt.Sprint(f, ": ", color.String(args.Color), ";"), nil
 	case fillOpacity, strokeOpacity:
-		return fmt.Sprint(f, ":", f32.String(args.Opacity), ";"), nil
+		return fmt.Sprint(f, ": ", f32.String(args.Opacity), ";"), nil
 	case strokeWidth, miterLimit:
-		return fmt.Sprint(f, ":", f32.String(args.Width), ";"), nil
+		return fmt.Sprint(f, ": ", f32.String(args.Width), ";"), nil
 	case lineCap:
-		return fmt.Sprint(f, ":", args.Cap, ";"), nil
+		return fmt.Sprint(f, ": ", args.Cap, ";"), nil
 	case lineJoin:
-		return fmt.Sprint(f, ":", args.Join, ";"), nil
+		return fmt.Sprint(f, ": ", args.Join, ";"), nil
 	case fillRule:
-		return fmt.Sprint(f, ":", args.Rule, ";"), nil
+		return fmt.Sprint(f, ": ", args.Rule, ";"), nil
 	case markerStart, markerMid, markerEnd:
-		return fmt.Sprint(f, ":", args.Uri, ";"), nil
+		return fmt.Sprint(f, ": ", args.Uri, ";"), nil
+	case fontSize:
+		return fmt.Sprint(f, ": ", f32.String(args.Width), args.Unit, ";"), nil
+	case fontFamily:
+		return fmt.Sprint(f, ": ", args.Font, ";"), nil
+	case fontWeight:
+		return fmt.Sprint(f, ": ", args.Weight, ";"), nil
+	case fontStyle:
+		return fmt.Sprint(f, ": ", args.Style, ";"), nil
+	case textAnchor:
+		return fmt.Sprint(f, ": ", args.Align, ";"), nil
 	default:
 		return "", data.ErrBadParameter.WithPrefix("SetStyle: ", f)
 	}
@@ -226,8 +329,4 @@ func (s *Style) String() string {
 		}
 	}
 	return strings.Join(attrs, " ")
-}
-
-func UnitString(name styleop, value float32, unit data.Unit) string {
-	return fmt.Sprintf("%v: %s%s", name, f32.String(value), unit.String())
 }

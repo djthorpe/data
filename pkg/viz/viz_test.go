@@ -12,5 +12,19 @@ func Test_Viz_001(t *testing.T) {
 	v := viz.NewViz(canvas.NewCanvas(data.A4LandscapeSize, data.MM))
 	if v == nil {
 		t.Fatal("Unexpected return from NewViz")
+	} else {
+		t.Log(v)
+	}
+}
+
+func Test_Viz_002(t *testing.T) {
+	v := viz.NewViz(canvas.NewCanvas(data.A4LandscapeSize, data.MM))
+	if v == nil {
+		t.Fatal("Unexpected return from NewViz")
+	}
+	if g := v.GraphPaper(0, 0); g == nil {
+		t.Fatal("Unexpected return from viz.GraphPaper")
+	} else {
+		t.Log(v)
 	}
 }

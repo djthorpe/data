@@ -280,7 +280,7 @@ func Test_Canvas_019(t *testing.T) {
 		c.NoStroke(),
 	) == nil {
 		t.Error("Unexpected nil from g.Style")
-	} else if str := fmt.Sprint(g); str != `<g style="fill:none; stroke:none;"></g>` {
+	} else if str := fmt.Sprint(g); str != `<g style="fill: none; stroke: none;"></g>` {
 		t.Error("Unexpected return, got: ", str)
 	}
 }
@@ -293,7 +293,7 @@ func Test_Canvas_020(t *testing.T) {
 		c.Fill(color.Red, 1.0),
 	) == nil {
 		t.Error("Unexpected nil from g.Style")
-	} else if str := fmt.Sprint(g); str != `<g style="fill:red; fill-opacity:1;"></g>` {
+	} else if str := fmt.Sprint(g); str != `<g style="fill: red; fill-opacity: 1;"></g>` {
 		t.Error("Unexpected return, got: ", str)
 	}
 }
@@ -306,7 +306,7 @@ func Test_Canvas_021(t *testing.T) {
 		c.Stroke(color.Red, 1.0),
 	) == nil {
 		t.Error("Unexpected nil from g.Style")
-	} else if str := fmt.Sprint(g); str != `<g style="stroke:red; stroke-opacity:1;"></g>` {
+	} else if str := fmt.Sprint(g); str != `<g style="stroke: red; stroke-opacity: 1;"></g>` {
 		t.Error("Unexpected return, got: ", str)
 	}
 }
@@ -320,7 +320,7 @@ func Test_Canvas_022(t *testing.T) {
 		c.NoFill(),
 	) == nil {
 		t.Error("Unexpected nil from g.Style")
-	} else if str := fmt.Sprint(g); str != `<g style="fill:none; stroke:red; stroke-opacity:1;"></g>` {
+	} else if str := fmt.Sprint(g); str != `<g style="fill: none; stroke: red; stroke-opacity: 1;"></g>` {
 		t.Error("Unexpected return, got: ", str)
 	}
 }
@@ -334,7 +334,7 @@ func Test_Canvas_023(t *testing.T) {
 		c.StrokeWidth(2.0),
 	) == nil {
 		t.Error("Unexpected nil from g.Style")
-	} else if str := fmt.Sprint(g); str != `<g style="stroke:red; stroke-opacity:1; stroke-width:2;"></g>` {
+	} else if str := fmt.Sprint(g); str != `<g style="stroke: red; stroke-opacity: 1; stroke-width: 2;"></g>` {
 		t.Error("Unexpected return, got: ", str)
 	}
 }
@@ -349,7 +349,7 @@ func Test_Canvas_024(t *testing.T) {
 		c.MiterLimit(2.0),
 	) == nil {
 		t.Error("Unexpected nil from g.Style")
-	} else if str := fmt.Sprint(g); str != `<g style="stroke-linecap:round; stroke-linejoin:miter-clip; stroke-miterlimit:2;"></g>` {
+	} else if str := fmt.Sprint(g); str != `<g style="stroke-linecap: round; stroke-linejoin: miter-clip; stroke-miterlimit: 2;"></g>` {
 		t.Error("Unexpected return, got: ", str)
 	}
 }
@@ -434,7 +434,7 @@ func Test_Canvas_028(t *testing.T) {
 		c.UseMarker(data.End, "end"),
 	); l == nil {
 		t.Error("Unexpected nil from c.Polygon")
-	} else if str := fmt.Sprint(l); str != `<polygon style="marker-start:start; marker-mid:mid; marker-end:end;"></polygon>` {
+	} else if str := fmt.Sprint(l); str != `<polygon style="marker-start: start; marker-mid: mid; marker-end: end;"></polygon>` {
 		t.Error("Unexpected return, got: ", str)
 	}
 
@@ -443,7 +443,7 @@ func Test_Canvas_028(t *testing.T) {
 		c.UseMarker(data.Middle, "mid"),
 	); l == nil {
 		t.Error("Unexpected nil from c.Polygon")
-	} else if str := fmt.Sprint(l); str != `<polygon style="marker-start:both; marker-mid:mid; marker-end:both;"></polygon>` {
+	} else if str := fmt.Sprint(l); str != `<polygon style="marker-start: both; marker-mid: mid; marker-end: both;"></polygon>` {
 		t.Error("Unexpected return, got: ", str)
 	}
 
@@ -451,7 +451,7 @@ func Test_Canvas_028(t *testing.T) {
 		c.UseMarker(0, "all"),
 	); l == nil {
 		t.Error("Unexpected nil from c.Polygon")
-	} else if str := fmt.Sprint(l); str != `<polygon style="marker-start:all; marker-mid:all; marker-end:all;"></polygon>` {
+	} else if str := fmt.Sprint(l); str != `<polygon style="marker-start: all; marker-mid: all; marker-end: all;"></polygon>` {
 		t.Error("Unexpected return, got: ", str)
 	}
 
@@ -459,7 +459,7 @@ func Test_Canvas_028(t *testing.T) {
 		c.UseMarker(data.Middle, "one"),
 	); l == nil {
 		t.Error("Unexpected nil from c.Polygon")
-	} else if str := fmt.Sprint(l); str != `<polygon style="marker-mid:one;"></polygon>` {
+	} else if str := fmt.Sprint(l); str != `<polygon style="marker-mid: one;"></polygon>` {
 		t.Error("Unexpected return, got: ", str)
 	}
 }
@@ -510,7 +510,106 @@ func Test_Canvas_030(t *testing.T) {
 		t.Error("Unexpected nil from c.Text")
 	} else if str := fmt.Sprint(txt); str != `<text x="0" y="0"><tspan textLength="100">hello</tspan><tspan textLength="50" textAdjust="spacingAndGlyphs">world</tspan></text>` {
 		t.Error("Unexpected return, got: ", str)
-	} else {
-		t.Log(txt)
+	}
+}
+
+func Test_Canvas_031(t *testing.T) {
+	c := canvas.NewCanvas(data.Size{16, 16}, data.PX)
+	txt := c.Text(data.ZeroPoint, false)
+	if txt == nil {
+		t.Error("Unexpected nil from c.Text")
+	}
+	if txt.Style(
+		c.FontFamily("arial"),
+	) == nil {
+		t.Error("Unexpected nil from c.Style")
+	} else if str := fmt.Sprint(txt); str != `<text x="0" y="0" style="font-family: arial;"></text>` {
+		t.Error("Unexpected return, got: ", str)
+	}
+
+	if txt.Style(
+		c.FontSize(12, data.PT),
+	) == nil {
+		t.Error("Unexpected nil from c.Style")
+	} else if str := fmt.Sprint(txt); str != `<text x="0" y="0" style="font-size: 12pt;"></text>` {
+		t.Error("Unexpected return, got: ", str)
+	}
+
+	if txt.Style(
+		c.FontFamily("arial"),
+		c.FontSize(12, data.PT),
+	) == nil {
+		t.Error("Unexpected nil from c.Style")
+	} else if str := fmt.Sprint(txt); str != `<text x="0" y="0" style="font-family: arial; font-size: 12pt;"></text>` {
+		t.Error("Unexpected return, got: ", str)
+	}
+
+	if txt.Style(
+		c.TextAnchor(data.Middle),
+	) == nil {
+		t.Error("Unexpected nil from c.Style")
+	} else if str := fmt.Sprint(txt); str != `<text x="0" y="0" style="text-anchor: middle;"></text>` {
+		t.Error("Unexpected return, got: ", str)
+	}
+
+	if txt.Style(
+		c.TextAnchor(data.End),
+	) == nil {
+		t.Error("Unexpected nil from c.Style")
+	} else if str := fmt.Sprint(txt); str != `<text x="0" y="0" style="text-anchor: end;"></text>` {
+		t.Error("Unexpected return, got: ", str)
+	}
+
+	if txt.Style(
+		c.TextAnchor(data.Start),
+	) == nil {
+		t.Error("Unexpected nil from c.Style")
+	} else if str := fmt.Sprint(txt); str != `<text x="0" y="0" style="text-anchor: start;"></text>` {
+		t.Error("Unexpected return, got: ", str)
+	}
+
+	if txt.Style(
+		c.FontVariant(data.Italic),
+	) == nil {
+		t.Error("Unexpected nil from c.Style")
+	} else if str := fmt.Sprint(txt); str != `<text x="0" y="0" style="font-style: italic;"></text>` {
+		t.Error("Unexpected return, got: ", str)
+	}
+
+	if txt.Style(
+		c.FontVariant(data.Oblique),
+	) == nil {
+		t.Error("Unexpected nil from c.Style")
+	} else if str := fmt.Sprint(txt); str != `<text x="0" y="0" style="font-style: oblique;"></text>` {
+		t.Error("Unexpected return, got: ", str)
+	}
+
+	if txt.Style(
+		c.FontVariant(data.Bold),
+	) == nil {
+		t.Error("Unexpected nil from c.Style")
+	} else if str := fmt.Sprint(txt); str != `<text x="0" y="0" style="font-weight: bold;"></text>` {
+		t.Error("Unexpected return, got: ", str)
+	}
+
+	if txt.Style(
+		c.FontVariant(data.Bolder|data.Oblique),
+	) == nil {
+		t.Error("Unexpected nil from c.Style")
+	} else if str := fmt.Sprint(txt); str != `<text x="0" y="0" style="font-weight: bolder; font-style: oblique;"></text>` {
+		t.Error("Unexpected return, got: ", str)
+	}
+
+}
+
+func Test_Canvas_032(t *testing.T) {
+	c := canvas.NewCanvas(data.Size{16, 16}, data.PX)
+	defs := c.Defs(
+		c.Circle(data.ZeroPoint, 5).Id("myCircle"),
+	)
+	if defs == nil {
+		t.Error("Unexpected nil from c.Defs")
+	} else if str := fmt.Sprint(defs); str != `<defs><circle cx="0" cy="0" r="5" id="myCircle"></circle></defs>` {
+		t.Error("Unexpected return, got: ", str)
 	}
 }

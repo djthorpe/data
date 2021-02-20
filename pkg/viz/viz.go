@@ -1,6 +1,9 @@
 package viz
 
 import (
+	"io"
+	"strings"
+
 	"github.com/djthorpe/data"
 )
 
@@ -8,7 +11,7 @@ import (
 // TYPES
 
 type Viz struct {
-	c data.Canvas
+	data.Canvas
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -19,7 +22,26 @@ func NewViz(c data.Canvas) data.Viz {
 	if c == nil {
 		return nil
 	} else {
-		viz.c = c
+		viz.Canvas = c
 	}
 	return viz
+}
+
+/////////////////////////////////////////////////////////////////////
+// STRINGIFY
+
+func (this *Viz) String() string {
+	b := new(strings.Builder)
+	if err := this.Write(0, b); err != nil {
+		panic(err)
+	} else {
+		return b.String()
+	}
+}
+
+/////////////////////////////////////////////////////////////////////
+// WRITE VIZ
+
+func (this *Viz) Write(opts data.Writer, w io.Writer) error {
+	return this.Canvas.Write(opts, w)
 }

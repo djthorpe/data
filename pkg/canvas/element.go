@@ -2,6 +2,7 @@ package canvas
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/djthorpe/data"
@@ -14,6 +15,13 @@ type Element struct {
 	data.Node
 	*Canvas
 }
+
+/////////////////////////////////////////////////////////////////////
+// CONSTANTS
+
+var (
+	reAttrId = regexp.MustCompile("^#?(a-zA-Z)[a-zA-Z0-9-]*$")
+)
 
 /////////////////////////////////////////////////////////////////////
 // LIFECYCLE
@@ -118,4 +126,8 @@ func (this *Element) isElement(tags ...string) bool {
 		}
 	}
 	return false
+}
+
+func (this *Element) isAttrId(value string) bool {
+	return reAttrId.MatchString(value)
 }

@@ -79,6 +79,21 @@ func (this *Canvas) DOM() data.Document {
 	return this.Document
 }
 
+func (this *Canvas) Remove(elems ...data.CanvasElement) error {
+	// Remove children
+	for _, elem := range elems {
+		if elem_, ok := elem.(*Element); ok == false {
+			return data.ErrBadParameter.WithPrefix("Remove")
+		} else if parent := elem_.Parent(); parent == nil {
+			return data.ErrBadParameter.WithPrefix("Remove")
+		} else if err := parent.RemoveChild(elem_.Node); err != nil {
+			return err
+		}
+	}
+	// Success
+	return nil
+}
+
 func (this *Canvas) Title(cdata string) data.Canvas {
 	cdata = strings.TrimSpace(cdata)
 

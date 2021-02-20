@@ -1,5 +1,7 @@
 package data
 
+import "io"
+
 /////////////////////////////////////////////////////////////////////
 // TYPES
 
@@ -11,6 +13,9 @@ package data
 type Viz interface {
 	// Create graph paper with major x minor grid squares
 	GraphPaper(major, minor int) VizGraphPaper
+
+	// Write to data stream
+	Write(Writer, io.Writer) error
 }
 
 type VizGraphPaper interface{}

@@ -39,10 +39,6 @@ const (
 )
 
 const (
-	Bold TableCellFlag = (1 << iota)
-)
-
-const (
 	BorderDefault = "+++++++++|-"
 	BorderLines   = "┌┬┐├┼┤└┴┘│─"
 )

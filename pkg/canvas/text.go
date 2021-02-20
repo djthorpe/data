@@ -59,6 +59,24 @@ func (this *Canvas) TextSpan(value string) data.CanvasText {
 	return elem
 }
 
+func (this *Canvas) TextPath(value string) data.CanvasText {
+	elem, err := this.NewElement("textPath")
+	if err != nil {
+		return nil
+	}
+
+	// Add cdata
+	value = strings.TrimSpace(value)
+	if value != "" {
+		if err := elem.AddChild(this.Document.CreateText(value)); err != nil {
+			return nil
+		}
+	}
+
+	// Return success
+	return elem
+}
+
 func (this *Element) Origin(pt data.Point, rel bool) data.CanvasText {
 	// Only possible on tspan elements
 	if this.isElement("tspan") == false {
@@ -83,8 +101,8 @@ func (this *Element) Offset(pt data.Point) data.CanvasText {
 }
 
 func (this *Element) Length(length float32, adjust data.Adjust) data.CanvasText {
-	// Only possible on text and tspan elements
-	if this.isElement("tspan", "text") == false {
+	// Only possible on text, textPath and tspan elements
+	if this.isElement("tspan", "textPath", "text") == false {
 		return nil
 	}
 

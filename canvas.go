@@ -18,13 +18,14 @@ type Size struct {
 }
 
 type (
-	Unit     int
-	Align    int
-	Adjust   int
-	LineCap  int
-	LineJoin int
-	FillRule int
-	Writer   int
+	Unit        int
+	Align       int
+	Adjust      int
+	LineCap     int
+	LineJoin    int
+	FillRule    int
+	FontVariant uint32
+	Writer      int
 )
 
 /////////////////////////////////////////////////////////////////////
@@ -43,11 +44,14 @@ type Canvas interface {
 	// Return canvas as an XML document
 	DOM() Document
 
+	// Remove a group or element
+	Remove(...CanvasElement) error
+
 	// Write to data stream
 	Write(Writer, io.Writer) error
 
-	// Implements CanvasGroup
-	CanvasGroup
+	// Create a defs group and attach elements to the group
+	Defs(...CanvasElement) CanvasGroup
 
 	// Create a group and attach elements to group
 	Group(...CanvasElement) CanvasGroup
@@ -81,25 +85,31 @@ type Canvas interface {
 	SkewX(float32) CanvasTransform
 	SkewY(float32) CanvasTransform
 
-	// Style primitives
+	// Fill styles
 	NoFill() CanvasStyle
-	NoStroke() CanvasStyle
 	Fill(Color, float32) CanvasStyle
 	FillRule(FillRule) CanvasStyle
+
+	// Stroke styles
+	NoStroke() CanvasStyle
 	Stroke(Color, float32) CanvasStyle
 	StrokeWidth(float32) CanvasStyle
 	LineCap(LineCap) CanvasStyle
 	LineJoin(LineJoin) CanvasStyle
 	MiterLimit(float32) CanvasStyle
+
+	// Text styles
+	FontSize(float32, Unit) CanvasStyle
+	FontFamily(string) CanvasStyle
+	FontVariant(FontVariant) CanvasStyle
+	TextAnchor(Align) CanvasStyle
+
+	// Other styles
 	UseMarker(Align, string) CanvasStyle
-	/*
-		// Text styles
-		FontSize(float32, Unit) CanvasStyle
-		TextAnchor(TextAlign) CanvasStyle
-	*/
 
 	// Text primitives
 	TextSpan(string) CanvasText
+	TextPath(string) CanvasText // TODO
 }
 
 type CanvasGroup interface {
@@ -158,6 +168,23 @@ const (
 const (
 	Spacing Adjust = iota
 	SpacingAndGlyphs
+)
+
+const (
+	Thin       FontVariant = (1 << iota) // 100
+	ExtraLight                           // 200
+	Light                                // 300
+	Regular                              // 400 (same as normal)
+	Medium                               // 500
+	SemiBold                             // 600
+	Bold                                 // 700
+	ExtraBold                            // 800
+	Black                                // 900
+	Bolder
+	Lighter
+	Italic
+	Oblique
+	Normal = Regular
 )
 
 const (
@@ -224,6 +251,39 @@ func (a Adjust) String() string {
 		fallthrough
 	default:
 		return "spacing"
+	}
+}
+
+func (v FontVariant) String() string {
+	switch v {
+	case Thin:
+		return "100"
+	case ExtraLight:
+		return "200"
+	case Light:
+		return "300"
+	case Medium:
+		return "500"
+	case SemiBold:
+		return "600"
+	case Bold:
+		return "bold" // aka 700
+	case ExtraBold:
+		return "800"
+	case Black:
+		return "900"
+	case Italic:
+		return "italic"
+	case Oblique:
+		return "oblique"
+	case Lighter:
+		return "lighter"
+	case Bolder:
+		return "bolder"
+	case Regular:
+		fallthrough
+	default:
+		return "normal" // aka 400
 	}
 }
 
