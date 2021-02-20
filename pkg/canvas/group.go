@@ -8,54 +8,8 @@ import (
 	"github.com/djthorpe/data/pkg/f32"
 )
 
-func (this *Element) Desc(cdata string) data.CanvasGroup {
-	cdata = strings.TrimSpace(cdata)
-
-	// Remove existing desc tags
-	if desc := this.Document.GetElementsByTagNameNS("desc", data.XmlNamespaceSVG); len(desc) != 0 {
-		for _, child := range desc {
-			this.Document.RemoveChild(child)
-		}
-	}
-
-	// Create a new desc tag - put at top of element
-	if cdata != "" {
-		desc := this.Document.CreateElementNS("desc", data.XmlNamespaceSVG)
-		if err := desc.AddChild(this.Document.CreateText(cdata)); err != nil {
-			return nil
-		} else if err := this.Document.InsertChildBefore(desc, this.Document.FirstChild()); err != nil {
-			return nil
-		}
-		// If there is a title tag, then put the desc tag after the title tag
-		if title := this.Document.GetElementsByTagNameNS("title", data.XmlNamespaceSVG); len(title) != 0 {
-			this.Document.InsertChildBefore(desc, title[0].NextSibling())
-		}
-	}
-
-	// Return success
-	return this
-}
-
-func (this *Element) OrientationAngle(angle float32) data.CanvasGroup {
-	// Return nil if the element is not a marker
-	fmt.Println(this.Name())
-	switch angle {
-	case 0:
-		if err := this.SetAttr("orient", "auto"); err != nil {
-			return nil
-		}
-	case 180:
-		if err := this.SetAttr("orient", "auto-start-reverse"); err != nil {
-			return nil
-		}
-	default:
-		if err := this.SetAttr("orient", f32.String(angle)); err != nil {
-			return nil
-		}
-	}
-	// Return group
-	return this
-}
+/////////////////////////////////////////////////////////////////////
+// GROUP ELEMENTS
 
 func (this *Canvas) Group(children ...data.CanvasElement) data.CanvasGroup {
 	g, err := this.NewElement("g")
@@ -104,4 +58,53 @@ func (this *Canvas) Marker(pt data.Point, sz data.Size, children ...data.CanvasE
 		}
 	}
 	return m
+}
+
+func (this *Element) Desc(cdata string) data.CanvasGroup {
+	cdata = strings.TrimSpace(cdata)
+
+	// Remove existing desc tags
+	if desc := this.Document.GetElementsByTagNameNS("desc", data.XmlNamespaceSVG); len(desc) != 0 {
+		for _, child := range desc {
+			this.Document.RemoveChild(child)
+		}
+	}
+
+	// Create a new desc tag - put at top of element
+	if cdata != "" {
+		desc := this.Document.CreateElementNS("desc", data.XmlNamespaceSVG)
+		if err := desc.AddChild(this.Document.CreateText(cdata)); err != nil {
+			return nil
+		} else if err := this.Document.InsertChildBefore(desc, this.Document.FirstChild()); err != nil {
+			return nil
+		}
+		// If there is a title tag, then put the desc tag after the title tag
+		if title := this.Document.GetElementsByTagNameNS("title", data.XmlNamespaceSVG); len(title) != 0 {
+			this.Document.InsertChildBefore(desc, title[0].NextSibling())
+		}
+	}
+
+	// Return success
+	return this
+}
+
+func (this *Element) OrientationAngle(angle float32) data.CanvasGroup {
+	// Return nil if the element is not a marker
+	fmt.Println("TODO:", this.Name())
+	switch angle {
+	case 0:
+		if err := this.SetAttr("orient", "auto"); err != nil {
+			return nil
+		}
+	case 180:
+		if err := this.SetAttr("orient", "auto-start-reverse"); err != nil {
+			return nil
+		}
+	default:
+		if err := this.SetAttr("orient", f32.String(angle)); err != nil {
+			return nil
+		}
+	}
+	// Return group
+	return this
 }

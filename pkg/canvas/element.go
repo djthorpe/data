@@ -103,3 +103,19 @@ func (this *Element) Transform(transforms ...data.CanvasTransform) data.CanvasEl
 func (this *Element) String() string {
 	return fmt.Sprint(this.Node)
 }
+
+/////////////////////////////////////////////////////////////////////
+// PRIVATE METHODS
+
+func (this *Element) isElement(tags ...string) bool {
+	name := this.Node.Name()
+	if name.Space != data.XmlNamespaceSVG {
+		return false
+	}
+	for _, tag := range tags {
+		if name.Local == tag {
+			return true
+		}
+	}
+	return false
+}

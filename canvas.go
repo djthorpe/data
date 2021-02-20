@@ -20,6 +20,7 @@ type Size struct {
 type (
 	Unit     int
 	Align    int
+	Adjust   int
 	LineCap  int
 	LineJoin int
 	FillRule int
@@ -62,7 +63,7 @@ type Canvas interface {
 	Path(...CanvasPath) CanvasElement
 	Polyline(...Point) CanvasElement
 	Polygon(...Point) CanvasElement
-	Text(Point, ...CanvasText) CanvasElement // TODO
+	Text(Point, bool, ...CanvasText) CanvasElement
 	Image(Point, Size, string) CanvasElement
 
 	// Path primitives
@@ -91,18 +92,20 @@ type Canvas interface {
 	LineJoin(LineJoin) CanvasStyle
 	MiterLimit(float32) CanvasStyle
 	UseMarker(Align, string) CanvasStyle
-
 	/*
-		// Text primitives
-		Span(string) CanvasText
+		// Text styles
 		FontSize(float32, Unit) CanvasStyle
 		TextAnchor(TextAlign) CanvasStyle
 	*/
+
+	// Text primitives
+	TextSpan(string) CanvasText
 }
 
 type CanvasGroup interface {
 	CanvasElement
 
+	// Description element for the group
 	Desc(string) CanvasGroup
 
 	// Marker orientation, when not set or zero, uses "auto"
@@ -116,10 +119,14 @@ type CanvasElement interface {
 	Transform(...CanvasTransform) CanvasElement
 }
 
+type CanvasText interface {
+	Offset(Point) CanvasText
+	Length(float32, Adjust) CanvasText
+}
+
 type CanvasPath interface{}
 type CanvasStyle interface{}
 type CanvasTransform interface{}
-type CanvasText interface{}
 
 /////////////////////////////////////////////////////////////////////
 // CONSTANTS
@@ -146,6 +153,11 @@ const (
 	Start Align = (1 << iota)
 	Middle
 	End
+)
+
+const (
+	Spacing Adjust = iota
+	SpacingAndGlyphs
 )
 
 const (
@@ -201,6 +213,17 @@ func (a Align) String() string {
 		fallthrough
 	default:
 		return "start"
+	}
+}
+
+func (a Adjust) String() string {
+	switch a {
+	case SpacingAndGlyphs:
+		return "spacingAndGlyphs"
+	case Spacing:
+		fallthrough
+	default:
+		return "spacing"
 	}
 }
 

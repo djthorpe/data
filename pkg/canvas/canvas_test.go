@@ -473,3 +473,44 @@ func Test_Canvas_029(t *testing.T) {
 		t.Error("Unexpected return, got: ", str)
 	}
 }
+
+func Test_Canvas_030(t *testing.T) {
+	c := canvas.NewCanvas(data.Size{16, 16}, data.PX)
+	if txt := c.Text(data.ZeroPoint, false); txt == nil {
+		t.Error("Unexpected nil from c.Text")
+	} else if str := fmt.Sprint(txt); str != `<text x="0" y="0"></text>` {
+		t.Error("Unexpected return, got: ", str)
+	}
+
+	if txt := c.Text(data.ZeroPoint, true); txt == nil {
+		t.Error("Unexpected nil from c.Text")
+	} else if str := fmt.Sprint(txt); str != `<text dx="0" dy="0"></text>` {
+		t.Error("Unexpected return, got: ", str)
+	}
+
+	if txt := c.Text(data.ZeroPoint, false, c.TextSpan("hello")); txt == nil {
+		t.Error("Unexpected nil from c.Text")
+	} else if str := fmt.Sprint(txt); str != `<text x="0" y="0"><tspan>hello</tspan></text>` {
+		t.Error("Unexpected return, got: ", str)
+	}
+
+	if txt := c.Text(data.ZeroPoint, false,
+		c.TextSpan("hello"),
+		c.TextSpan("world").Offset(data.Point{0, 5}),
+	); txt == nil {
+		t.Error("Unexpected nil from c.Text")
+	} else if str := fmt.Sprint(txt); str != `<text x="0" y="0"><tspan>hello</tspan><tspan dx="0" dy="5">world</tspan></text>` {
+		t.Error("Unexpected return, got: ", str)
+	}
+
+	if txt := c.Text(data.ZeroPoint, false,
+		c.TextSpan("hello").Length(100, 0),
+		c.TextSpan("world").Length(50, data.SpacingAndGlyphs),
+	); txt == nil {
+		t.Error("Unexpected nil from c.Text")
+	} else if str := fmt.Sprint(txt); str != `<text x="0" y="0"><tspan textLength="100">hello</tspan><tspan textLength="50" textAdjust="spacingAndGlyphs">world</tspan></text>` {
+		t.Error("Unexpected return, got: ", str)
+	} else {
+		t.Log(txt)
+	}
+}
