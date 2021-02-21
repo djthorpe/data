@@ -22,6 +22,11 @@ func CentrePoint(pt data.Point, sz data.Size) data.Point {
 	}
 }
 
+// Add Size to Point
+func AddPoint(pt data.Point, sz data.Size) data.Point {
+	return data.Point{pt.X + sz.W, pt.Y + sz.H}
+}
+
 // Multiply size by a constant
 func MultiplySize(sz data.Size, k float32) data.Size {
 	if k == 0 {

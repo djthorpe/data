@@ -12,13 +12,26 @@ import "io"
 
 type Viz interface {
 	// Create graph paper with major x minor grid squares
-	GraphPaper(major, minor int) VizGraphPaper
+	GraphPaper(major, minor uint) VizGraphPaper
 
 	// Write to data stream
 	Write(Writer, io.Writer) error
 }
 
 type VizGraphPaper interface{}
+
+/////////////////////////////////////////////////////////////////////
+// CONSTANTS
+
+const (
+	// Class names used for GraphPaper
+	ClassGraphPaper       = "graphpaper"
+	ClassGraphPaperBorder = "border"
+	ClassGraphPaperXMajor = "majorx"
+	ClassGraphPaperYMajor = "majory"
+	ClassGraphPaperXMinor = "minorx"
+	ClassGraphPaperYMinor = "minory"
+)
 
 /*
 type VizGroup interface {

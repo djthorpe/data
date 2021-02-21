@@ -62,6 +62,11 @@ func (this *Canvas) Size() data.Size {
 	return this.size
 }
 
+// Get viewBox
+func (this *Canvas) ViewBox() (data.Point, data.Size) {
+	return this.origin, this.size
+}
+
 // Set viewBox
 func (this *Canvas) SetViewBox(pt data.Point, sz data.Size) error {
 	if err := setViewBox(this.Document, pt, sz); err != nil {

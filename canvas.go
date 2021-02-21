@@ -33,9 +33,10 @@ type (
 
 type Canvas interface {
 	// Get and set canvas viewbox
+	ViewBox() (Point, Size)
+	SetViewBox(Point, Size) error
 	Origin() Point
 	Size() Size
-	SetViewBox(Point, Size) error
 
 	// Set canvas properties
 	Title(string) Canvas

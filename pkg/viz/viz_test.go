@@ -22,7 +22,7 @@ func Test_Viz_002(t *testing.T) {
 	if v == nil {
 		t.Fatal("Unexpected return from NewViz")
 	}
-	if g := v.GraphPaper(0, 0); g == nil {
+	if g := v.GraphPaper(10, 2); g == nil {
 		t.Fatal("Unexpected return from viz.GraphPaper")
 	} else {
 		t.Log(v)
