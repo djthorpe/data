@@ -142,50 +142,100 @@ This outputs SVG which prints "Hello, World" in 64pt at the centre of an A4 rect
 
 | Declaration | Arguments | Description |
 | :--- | :--- | :--- |
-| `element.NoFill` | `()` | Do not fill the element |
-| `element.Fill` | `(color data.Color,opacity float32)` | Fill the element with color and with opacity between 0.0 and 1.0 |
-| `element.FillRule` | `(data.NonZero|data.EvenOdd)` | When EvenOdd, fill crossing segments alternatively. See [here](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/fill-rule) for more information. |
-| `element.FillRule` | `(data.NonZero|data.EvenOdd)` | When EvenOdd, fill crossing segments alternatively. See [here](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/fill-rule) for more information. |
-
+| `canvas.NoFill` | | Do not fill the element |
+| `canvas.Fill` | `color data.Color, opacity float32` | Fill the element with color and with opacity between 0.0 and 1.0 |
+| `canvas.FillRule` | `data.NonZero \| data.EvenOdd` | When EvenOdd, fill crossing segments alternatively. See [here](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/fill-rule) for more information. |
 
 ### Stroke Style Declarations
 
 | Declaration | Arguments | Description |
 | :--- | :--- | :--- |
-
-	NoStroke() CanvasStyle
-	Stroke(Color, float32) CanvasStyle
-	StrokeWidth(float32) CanvasStyle
-	LineCap(LineCap) CanvasStyle
-	LineJoin(LineJoin) CanvasStyle
-	MiterLimit(float32) CanvasStyle
+| `canvas.NoStroke` | | Do not outline the element |
+| `canvas.Stroke` | `color data.Color, opacity float32` | Draw outline with color and with opacity between 0.0 and 1.0 |
+| `canvas.StrokeWidth` | `width float32` | Width of element with user unit width
+| `canvas.LineCap` | `data.CapButt \| data.CapRound \| data.CapSquare` | Line endings. See [here](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke-linecap) for more information.
+| `canvas.LineJoin` | `data.JoinMiter \| data.JoinMiterClip \| data.JoinArcs \| data.JoinRound \| data.JoinBevel` | Line join. See [here](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke-linejoin) for more information.
+| `canvas.MiterLimit` | `ratio float32` | Miter limit when joining two lines. See [here](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke-miterlimit) for more information. |	
 
 ### Text Style Declarations
 
 | Declaration | Arguments | Description |
 | :--- | :--- | :--- |
+| `canvas.FontSize` | `size float32, unit data.Unit` | Text rendering size. |
+| `canvas.FontFamily` | `string` | Comma separated lists of font names.
+| `canvas.FontVariant` | `data.Thin \| data.ExtraLight \| data.Light \| data.Regular \| data.Medium \| data.SemiBold \| data.Bold \| data.ExtraBold \| data.Black \| data.Bolder \| data.Lighter \| data.Italic \| data.Oblique` | One or more font variants (more than one can be specified using the OR (\|) operator).
+| `canvas.TextAnchor` | `data.Start \| data.Middle \| data.End` | Anchor the origin to the start, middle or end of the text.
 
-	FontSize(float32, Unit) CanvasStyle
-	FontFamily(string) CanvasStyle
-	FontVariant(FontVariant) CanvasStyle
-	TextAnchor(Align) 
+
 
 ### Other Style Declarations
 
 | Declaration | Arguments | Description |
 | :--- | :--- | :--- |
+| `canvas.UseMarker` |  `data.Start \| data.Middle \| data.End, id string` | When drawing line segments, use a specific marker referenced by *id* for the start of a series of segments, for the joins (middle) and/or end. A marker is defined by the `canvas.Marker` element and referenced by *id*. A marker can be used for more than one position using the OR (\|) operator.
 
-UseMarker(Align, string) CanvasStyle
-
-## Transformation
-
-TODO
 
 ## Grouping, Markers & Definitions
 
+There are canvas declarations to group elements:
+
+  * `canvas.Group` can group elements so that style and transformations can be applied to a set of elements;
+  * `canvas.Marker` can group elements to define line start, middle and end markers;
+  * `canvas.Defs` can define a set of elements to be used repeatedly on the canvas.
+   
+In general groups of elements are referred to using their `id` for later use. For example,
+
 TODO
+
+## Transformation
+
+Elements and groups of elements can be transformed with one or more transformation declarations, which are arguments to the `element.Transform` function. Typically a transformation is a rotation, skew, scale or co-ordinate translation. Transformations usually occur one after another. For example,
+
+```go
+package main
+
+import (
+    "os"
+    "github.com/djthorpe/data"
+    "github.com/djthorpe/data/pkg/canvas"
+    "github.com/djthorpe/data/pkg/color"
+)
+
+func main() {
+    c := canvas.NewCanvas(data.A4LandscapeSize, data.MM)
+    c.Rect(c.Origin(), c.Size()).Style(
+        c.Fill(color.LightGray, 1.0),
+    ).Transform(
+        c.Rotate(45.0),
+        c.Translate(geom.CentrePoint(c.Origin(),c.Size())),
+    )
+    c.Write(data.SVG, os.Stdout)
+}
+```
+
+This will render a filled rectangle with its' origin at the centre of the canvas rotated by 45 degrees clockwise. The transformation declarations you can use are:
+
+| Declaration | Arguments | Description |
+| :--- | :--- | :--- |
+| `canvas.Scale` | `data.Size` | Scale co-ordinate system by width and height. A value below 1.0 reduces the size, and above increases the size |
+| `canvas.Translate` | `data.Point` | Move co-ordinate system by x and y. |
+| `canvas.Rotate` | `degrees float32` | Rotate co-ordinate system around the zero point. A positive value rotates clockwise.  |
+| `canvas.RotateAround` | `degrees float32, centre Point` | Rotate co-ordinate system around a centre point. This is equivalent to translating by `-centre`, rotation and then translating by `+centre`. |
+| `canvas.SkewX` | `degrees float32` | Skew the X-Coordinates. |
+| `canvas.SkewY` | `degrees float32` | Skew the Y-Coordinates. |
+
+For more information on co-ordinate transformation please see [here](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/transform).
 
 ## Rendering
 
 TODO
+
+## Limitations
+
+TODO
+
+## What's Next
+
+TODO
+
 
