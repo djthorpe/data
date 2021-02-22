@@ -2,6 +2,7 @@ package color
 
 import (
 	"fmt"
+	"image/color"
 	"math"
 	"regexp"
 	"sort"
@@ -400,6 +401,18 @@ func Nearest(c data.Color, palette []data.Color) data.Color {
 		}
 	}
 	return nearest
+}
+
+// CMYK converts a color to a CMYK quadruple
+func CMYK(c data.Color) color.CMYK {
+	C, M, K, Y := color.RGBToCMYK(c.R, c.G, c.B)
+	return color.CMYK{C, M, K, Y}
+}
+
+// YCbCr converts an RGB triple to a Y'CbCr triple
+func YCbCr(c data.Color) color.YCbCr {
+	Y, Cb, Cr := color.RGBToYCbCr(c.R, c.G, c.B)
+	return color.YCbCr{Y, Cb, Cr}
 }
 
 /////////////////////////////////////////////////////////////////////

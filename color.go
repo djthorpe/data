@@ -28,3 +28,11 @@ const (
 	ColorBrown
 	ColorPrimary
 )
+
+/////////////////////////////////////////////////////////////////////
+// METHODS
+
+// RGBA returns fully opaque color values
+func (c Color) RGBA() (r, g, b, a uint32) {
+	return uint32(c.R) * 257, uint32(c.G) * 257, uint32(c.B) * 257, 0xFFFF
+}
