@@ -20,6 +20,9 @@ type Series interface {
 
 	// Sets returns sets contained with the series
 	Sets() []Set
+
+	// Len returns the number of sets
+	Len() int
 }
 
 // Set represents an ordered set of values
@@ -34,6 +37,12 @@ type Set interface {
 // PointSet represents an ordered set of points (X,Y)
 type PointSet interface {
 	Set
+
+	// Minimum X,Y values
+	Min() Point
+
+	// Maximum X,Y values
+	Max() Point
 
 	// Append points to the set
 	Append(...Point)

@@ -1,12 +1,12 @@
-package viz_test
+package sets_test
 
 import (
 	"os"
 	"testing"
 
 	"github.com/djthorpe/data"
+	"github.com/djthorpe/data/pkg/sets"
 	"github.com/djthorpe/data/pkg/table"
-	"github.com/djthorpe/data/pkg/viz"
 )
 
 const (
@@ -14,7 +14,7 @@ const (
 )
 
 func Test_Series_001(t *testing.T) {
-	s := viz.NewSeries()
+	s := sets.NewSeries()
 	if s == nil {
 		t.Fatal("Expected non-nil series")
 	}
@@ -22,42 +22,51 @@ func Test_Series_001(t *testing.T) {
 }
 
 func Test_Series_002(t *testing.T) {
+	// Create table and series
+	series := sets.NewSeries()
 	table := table.NewTable()
+	if series == nil || table == nil {
+		t.Fatal("Expected non-nil series and table")
+	}
+
+	// Read dataset
 	fh, err := os.Open(DATASET_A)
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer fh.Close()
 
-	// Read float, string and nil values from CSV
+	// Read longitude and latitude from CSV
 	if err := table.Read(fh, table.OptHeader(), table.OptType(data.Nil|data.Float)); err != nil {
 		t.Fatal(err)
-	}
-
-	// Generate series of data from table
-	series := viz.NewSeries()
-	if err := series.Read(table, func(i int, row []interface{}) ([]interface{}, error) {
+	} else if err := series.Read(table, func(i int, row []interface{}) ([]interface{}, error) {
 		// Row 0 is state, 3+4 is LatLong, 5 is Cases and 6 is Deaths
-
-		switch i {
-		case -1:
-			return []interface{}{
-				table.Col(0).Name(),
-				table.Col(3).Name() + "," + table.Col(4).Name(),
-				table.Col(5).Name(),
-				table.Col(6).Name(),
-			}, nil
-		default:
+		if i == -1 {
+			return []interface{}{"state", "longlat", "cases", "deaths"}, nil
+		} else {
 			return []interface{}{
 				row[0].(string),
 				data.Point{data.Float32(row[3]), data.Float32(row[4])},
-				data.Float32(row[5]),
-				data.Float32(row[6]),
+				row[5].(float64),
+				row[6].(float64),
 			}, nil
 		}
 	}); err != nil {
 		t.Error(err)
 	}
+
+	// Output longitude and latitude values
+	t.Log(series)
+
+}
+
+/*
+func Test_Series_002(t *testing.T) {
+
+
+	// Generate series of data from table
+	series := viz.NewSeries()
+
 
 	for _, set := range series.Sets() {
 		t.Log(set)
@@ -81,5 +90,5 @@ func Test_Series_002(t *testing.T) {
 		} else {
 			t.Log("\n" + b.String())
 		}
-	*/
 }
+*/

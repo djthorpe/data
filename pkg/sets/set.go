@@ -1,4 +1,4 @@
-package viz
+package sets
 
 import (
 	"github.com/djthorpe/data"

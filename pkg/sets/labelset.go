@@ -1,4 +1,4 @@
-package viz
+package sets
 
 import (
 	"fmt"
@@ -10,20 +10,17 @@ import (
 /////////////////////////////////////////////////////////////////////
 // TYPES
 
-type labels struct {
+type LabelSet struct {
 	name string
 	v    []string
 }
 
 /////////////////////////////////////////////////////////////////////
-// CONSTANTS
-
-/////////////////////////////////////////////////////////////////////
 // LIFECYCLE
 
-// NewValues returns an empty array of values
-func NewLabels(name string) data.Labels {
-	this := new(labels)
+// NewLabelSet returns an empty array of labels
+func NewLabelSet(name string) data.LabelSet {
+	this := new(LabelSet)
 	this.name = name
 	return this
 }
@@ -31,31 +28,31 @@ func NewLabels(name string) data.Labels {
 /////////////////////////////////////////////////////////////////////
 // METHODS
 
-func (p *labels) Name() string {
-	return p.name
+func (set *LabelSet) Name() string {
+	return set.name
 }
 
-func (p *labels) SetName(name string) {
-	p.name = name
+func (set *LabelSet) SetName(name string) {
+	set.name = name
 }
 
-func (p *labels) Len() int {
-	return len(p.v)
+func (set *LabelSet) Len() int {
+	return len(set.v)
 }
 
-func (p *labels) Append(label string) {
-	p.v = append(p.v, label)
+func (set *LabelSet) Append(labels ...string) {
+	set.v = append(set.v, labels...)
 }
 
 /////////////////////////////////////////////////////////////////////
 // STRINGIFY
 
-func (p *labels) String() string {
-	str := "<labels"
-	str += fmt.Sprintf(" name=%q", p.Name())
-	if len(p.v) > 0 {
+func (set *LabelSet) String() string {
+	str := "<labelset"
+	str += fmt.Sprintf(" name=%q", set.Name())
+	if len(set.v) > 0 {
 		str += " <"
-		for _, v := range p.v {
+		for _, v := range set.v {
 			str += fmt.Sprintf("%q,", v)
 		}
 		str = strings.TrimSuffix(str, ",") + ">"
