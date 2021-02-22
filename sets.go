@@ -60,11 +60,18 @@ type LabelSet interface {
 type RealSet interface {
 	Set
 
+	// Minimum value
+	Min() float64
+
+	// Maximum value
+	Max() float64
+
 	// Append float64 values to the set
 	Append(...float64)
 }
 
 // TimeSet represents an ordered set of dates or datetime values
+// TODO
 type TimeSet interface {
 	Set
 

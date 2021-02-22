@@ -55,40 +55,6 @@ func Test_Series_002(t *testing.T) {
 		t.Error(err)
 	}
 
-	// Output longitude and latitude values
+	// Output state, longlat, cases and deaths
 	t.Log(series)
-
 }
-
-/*
-func Test_Series_002(t *testing.T) {
-
-
-	// Generate series of data from table
-	series := viz.NewSeries()
-
-
-	for _, set := range series.Sets() {
-		t.Log(set)
-		if v, ok := set.(data.Values); ok {
-			t.Log(v.Scale())
-		}
-	}
-
-	/*
-		// Create an A4 canvas
-		canvas := canvas.NewCanvas(data.A4LandscapeSize, data.MM)
-
-		// Write the series to the canvas, scaling values so that (0,0) translates to (0,0) and
-		// (W,H) translates to maximum point in series
-		points.WritePath(canvas).Scale(data.Point{0, 0}, points.Max())
-
-		// Output SVG
-		b := new(strings.Builder)
-		if err := canvas.Write(b); err != nil {
-			t.Error(err)
-		} else {
-			t.Log("\n" + b.String())
-		}
-}
-*/

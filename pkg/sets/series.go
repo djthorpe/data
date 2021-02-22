@@ -109,9 +109,10 @@ func create(j int, values []interface{}) ([]data.Set, error) {
 			sets[i] = NewLabelSet(fmt.Sprintf("labels_%02d", i+j))
 		case float32, float64:
 			sets[i] = NewRealSet(fmt.Sprintf("real_%02d", i+j))
-			/*
-				case time.Time:
-					sets[i] = NewTimeSet(fmt.Sprintf("time_%02d", i+j))*/
+			/* TODO
+			case time.Time:
+				sets[i] = NewTimeSet(fmt.Sprintf("time_%02d", i+j))
+			*/
 		default:
 			return nil, data.ErrBadParameter.WithPrefix("Read: ", "Invalid iterator return value: ", v)
 		}
