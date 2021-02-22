@@ -101,26 +101,23 @@ func (op *Operation) CreatePath(c data.Canvas, cap int) error {
 	return nil
 }
 
-func (op *Operation) AddPoints(c data.Canvas, code string, values []float32, i int) (int, error) {
+func (op *Operation) AddPoints(c data.Canvas, code string, values []float32, i int) (data.CanvasPath, int, error) {
 	switch code {
 	case "M":
-		op.path.MoveTo(data.Point{values[i], values[i+1]})
-		return 2, nil
+		return c.MoveTo(data.Point{values[i], values[i+1]}), 2, nil
 	case "L":
-		op.path.LineTo(data.Point{values[i], values[i+1]})
-		return 2, nil
+
+		return c.LineTo(data.Point{values[i], values[i+1]}), 2, nil
 	case "C":
-		op.path.CubicTo(
+		return c.CubicTo(
 			data.Point{values[i+4], values[i+5]},
 			data.Point{values[i], values[i+1]},
 			data.Point{values[i+2], values[i+3]},
-		)
-		return 6, nil
+		), 6, nil
 	case "E":
-		op.path.ClosePath()
-		return 0, nil
+		return c.ClosePath(), 0, nil
 	default:
-		return 0, fmt.Errorf("Invalid AddPoints opcode %q", code)
+		return nil, 0, fmt.Errorf("Invalid AddPoints opcode %q", code)
 	}
 }
 

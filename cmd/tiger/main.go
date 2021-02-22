@@ -42,10 +42,9 @@ func main() {
 	// Create canvas
 	c := canvas.NewCanvas(data.LetterPortraitSize, data.MM)
 	c.Title("Tiger")
-	c.Desc("Parse instructions to create a complex SVG document")
 
 	// Set size in points 1mm = 0.3527pt (72 points per inch)
-	c.SetSize(geom.DivideSize(c.Size(), 0.3527))
+	c.SetViewBox(data.ZeroPoint, geom.DivideSize(c.Size(), 0.3527))
 
 	// Create a group for rotation
 	g := c.Group()
@@ -163,17 +162,19 @@ func Render(c data.Canvas, g data.CanvasGroup, opcodes [][][]byte, values []floa
 		}
 		v++
 
+		segments := make([]data.CanvasPath, count)
 		for j := 0; j < count; j++ {
-			if vinc, err := op.AddPoints(c, string(opcodes[i][1]), values, v); err != nil {
+			if segment, vinc, err := op.AddPoints(c, string(opcodes[i][1]), values, v); err != nil {
 				return err
 			} else {
+				segments[j] = segment
 				v += vinc
 			}
 			i++
 		}
 
-		// Add path
-		g.Group(op.path.Style(op.style...))
+		// Add path to group
+		g.Append(c.Path(segments...).Style(op.style...))
 	}
 
 	// Return success

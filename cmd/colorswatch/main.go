@@ -93,7 +93,7 @@ func AddColor(c data.Canvas, size data.Size, bg data.Color, fg data.Color) data.
 		).Style(
 			c.TextAnchor(data.Middle),
 			c.FontFamily("Arial, Helvetica, sans-serif"),
-			c.FontSize(3, data.None),
+			c.FontSize(2.5, data.None),
 			c.Fill(fg, 1.0),
 		),
 	)

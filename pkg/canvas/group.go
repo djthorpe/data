@@ -137,3 +137,22 @@ func (this *Element) OrientationAngle(angle float32) data.CanvasGroup {
 	// Return group
 	return this
 }
+
+func (this *Element) Append(children ...data.CanvasElement) data.CanvasGroup {
+	// Append children. If any children are nil, then return nil to bubble up
+	// any errors
+	for _, child := range children {
+		if child == this {
+			return nil
+		} else if child == nil {
+			return nil
+		} else if elem, ok := child.(*Element); ok == false {
+			return nil
+		} else if err := this.AddChild(elem.Node); err != nil {
+			return nil
+		}
+	}
+
+	// Return group
+	return this
+}

@@ -121,6 +121,9 @@ type CanvasGroup interface {
 
 	// Marker orientation, when not set or zero, uses "auto"
 	OrientationAngle(float32) CanvasGroup
+
+	// Add elements to group
+	Append(...CanvasElement) CanvasGroup
 }
 
 type CanvasElement interface {
