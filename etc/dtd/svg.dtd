@@ -1,0 +1,25 @@
+
+<!--SVG-->
+
+<!-- SVG Elements -->
+<!ELEMENT svg    ((style|title|desc|defs)*,(g|circle|ellipse|line|path|polygon|polyline|rect|text)+)>
+<!ELEMENT title  (#PCDATA)>
+<!ELEMENT desc   (#PCDATA)>
+
+<!-- Grouping Elements -->
+<!ELEMENT defs   (desc?,(g|marker|use|circle|ellipse|line|path|polygon|polyline|rect|text)+)>
+<!ELEMENT g      (desc?,(g|marker|use|circle|ellipse|line|path|polygon|polyline|rect|text)+)>
+<!ELEMENT marker (desc?,(g|marker|use|circle|ellipse|line|path|polygon|polyline|rect|text)+)>
+<!ELEMENT use EMPTY>
+
+<!-- Shape Elements -->
+<!ELEMENT circle EMPTY>
+<!ELEMENT ellipse EMPTY>
+<!ELEMENT line EMPTY>
+<!ELEMENT path EMPTY>
+<!ELEMENT polygon EMPTY>
+<!ELEMENT polyline EMPTY>
+<!ELEMENT rect EMPTY>
+<!ELEMENT text (#PCDATA|tspan|textPath)*>
+<!ELEMENT tspan (#PCDATA)>
+<!ELEMENT textPath (#PCDATA)>
