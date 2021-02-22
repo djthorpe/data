@@ -29,8 +29,8 @@ type Table interface {
 	// Write data with table options
 	Write(io.Writer, ...TableOpt) error
 
-	// Output XML of the table
-	// DOM(...TableOpt) Document // TODO
+	// Output XML of the table, applying options OptHeader and OptXml(id,ns)
+	DOM(...TableOpt) Document
 
 	// Append a row to the table
 	Append(...interface{})
@@ -91,9 +91,9 @@ type Table interface {
 	// include a statement to create the table
 	OptSql(string) TableOpt
 
-	// OptXml used to write XML format with the provided table id.  Including OptHeader()
-	// option will also include the <thead> element at the top of the XML
-	// OptXml(string) TableOpt TODO
+	// OptXml used to write XML format with the provided table id and XML namespace.
+	// Including OptHeader() option will also include the <thead> element at the top of the XML
+	OptXml(string, string) TableOpt
 
 	// OptDuration used on Read to interpret values into durations (h,m,s,ms,ns)
 	// and truncate to the provided duration

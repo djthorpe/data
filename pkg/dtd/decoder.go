@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"regexp"
 	"strconv"
 	"strings"
 	"unicode"
@@ -20,8 +21,8 @@ type State interface {
 	// some new state or nil if state is completed
 	Token(rune) (State, error)
 
-	// Clear will clear the token buffer
-	Clear()
+	// AddChild adds a child element to a parent
+	AddChild(*Document, State) error
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -33,13 +34,12 @@ type Decoder struct {
 }
 
 type root struct {
-	// Parse <!
 	buf string
 }
 
-type rule struct {
-	// Parse <!--, <!ELEMENT or <!ATTLIST
-	*root
+type element struct {
+	// Parse <!ELEMENT ...>
+	name string
 }
 
 type comment struct {
@@ -48,9 +48,21 @@ type comment struct {
 	comment string
 }
 
-type element struct {
-	*root
+type keyword struct {
+	tok string
 }
+
+type group struct {
+	tok string
+}
+
+/////////////////////////////////////////////////////////////////////
+// CONSTANTS
+
+var (
+	// reKeyword defines how an element name must appear
+	reKeyword = regexp.MustCompile("^([A-Za-z][A-Za-z0-9-]*)$")
+)
 
 /////////////////////////////////////////////////////////////////////
 // LIFECYCLE
@@ -79,11 +91,11 @@ func (this *Decoder) Decode(doc *Document) error {
 			return err
 		}
 		if newstate == nil {
-			// Eject instruction, clear token buffer and pop state
-			if err := doc.append(state); err != nil {
+			parent := this.stack[len(this.stack)-2]
+			// Perform action on parent when removing the child element
+			if err := parent.AddChild(doc, state); err != nil {
 				return err
 			}
-			state.Clear()
 			this.stack = this.stack[:len(this.stack)-1]
 		} else if newstate != state {
 			// Push new state
@@ -91,8 +103,10 @@ func (this *Decoder) Decode(doc *Document) error {
 		}
 	}
 
-	// Print stack - TODO: return error if stack is not empty
-	fmt.Println("stack=", this.stack)
+	// The stack should have a root element on it only
+	if len(this.stack) != 1 {
+		return data.ErrBadParameter.WithPrefix("Decode")
+	}
 
 	// Return success
 	return nil
@@ -114,7 +128,7 @@ func (this *Decoder) CurrentState(doc *Document) State {
 }
 
 /////////////////////////////////////////////////////////////////////
-// STATE METHODS
+// ROOT METHODS
 
 func (this *root) Append(r rune) {
 	// Return if whitespace at beginning
@@ -123,38 +137,36 @@ func (this *root) Append(r rune) {
 	}
 }
 
-func (this *root) Clear() {
-	this.buf = ""
-}
-
 func (this *root) Token(r rune) (State, error) {
-	this.Append(r)
-
-	// Return if not two chars
-	if len(this.buf) < 2 {
-		return this, nil
-	}
-
-	// Return error if tok is not <! else create a rule
-	if this.buf != "<!" {
-		return nil, data.ErrBadParameter.WithPrefix(strconv.Quote(this.buf))
-	}
-
-	return &rule{this}, nil
-}
-
-func (this *rule) Token(r rune) (State, error) {
 	this.Append(r)
 
 	switch this.buf {
 	case "<!--":
-		return &comment{this.root, ""}, nil
+		return &comment{this, ""}, nil
 	case "<!ELEMENT":
-		return &element{this.root}, nil
+		return &element{""}, nil
 	default:
 		return this, nil
 	}
 }
+
+func (this *root) AddChild(doc *Document, state State) error {
+	// Append elements to the document
+	if _, ok := state.(*element); ok {
+		if err := doc.append(state); err != nil {
+			return err
+		}
+	}
+
+	// Clear token buffer
+	this.buf = ""
+
+	// Return success
+	return nil
+}
+
+/////////////////////////////////////////////////////////////////////
+// COMMENT METHODS
 
 func (this *comment) Token(r rune) (State, error) {
 	this.Append(r)
@@ -168,12 +180,93 @@ func (this *comment) Token(r rune) (State, error) {
 	}
 }
 
+/////////////////////////////////////////////////////////////////////
+// ELEMENT METHODS
+
 func (this *element) Token(r rune) (State, error) {
-	this.Append(r)
+	// Ingest the name of the element, or check to make sure it's
+	// valid element name
+	if this.name == "" {
+		return &keyword{""}, nil
+	}
 
-	fmt.Printf("element: %q\n", this.buf)
+	// Consume whitespace
+	if unicode.IsSpace(r) {
+		return this, nil
+	}
 
+	// Next can be open bracket or keyword
+	if r == '(' {
+		return &group{"("}, nil
+	} else {
+		return &keyword{string(r)}, nil
+	}
+}
+
+func (this *element) AddChild(_ *Document, state State) error {
+	// Append keyword to the element
+	if name, ok := state.(*keyword); ok {
+		if name.Valid() == false {
+			return data.ErrBadParameter.WithPrefix(strconv.Quote(name.Value()))
+		} else {
+			this.name = name.Value()
+		}
+	}
+
+	fmt.Println("element add child=", state)
+
+	// Return success
+	return nil
+}
+
+/////////////////////////////////////////////////////////////////////
+// GROUP METHODS
+
+func (this *group) Token(r rune) (State, error) {
+	if r == '(' {
+		// Start new child group
+		return &group{"("}, nil
+	} else if r == ')' {
+		return nil, nil
+	} else {
+		this.tok += string(r)
+	}
 	return this, nil
+}
+
+func (this *group) AddChild(_ *Document, state State) error {
+	fmt.Println("group add child=", state)
+	return nil
+}
+
+/////////////////////////////////////////////////////////////////////
+// KEYWORD METHODS
+
+func (this *keyword) Token(r rune) (State, error) {
+	if unicode.IsNumber(r) || unicode.IsLetter(r) || r == '-' {
+		this.tok += string(r)
+		return this, nil
+	} else if unicode.IsSpace(r) {
+		return nil, nil
+	} else {
+		return nil, data.ErrBadParameter.WithPrefix(strconv.Quote(this.tok))
+	}
+}
+
+func (this *keyword) AddChild(_ *Document, _ State) error {
+	return nil
+}
+
+func (this *keyword) Valid() bool {
+	if this.tok == "" {
+		return false
+	} else {
+		return reKeyword.MatchString(this.tok)
+	}
+}
+
+func (this *keyword) Value() string {
+	return this.tok
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -181,11 +274,6 @@ func (this *element) Token(r rune) (State, error) {
 
 func (this *root) String() string {
 	str := "<root"
-	return str + ">"
-}
-
-func (this *rule) String() string {
-	str := "<rule"
 	return str + ">"
 }
 
@@ -199,5 +287,24 @@ func (this *comment) String() string {
 
 func (this *element) String() string {
 	str := "<element"
+	if this.name != "" {
+		str += fmt.Sprintf(" name=%q", this.name)
+	}
+	return str + ">"
+}
+
+func (this *keyword) String() string {
+	str := "<keyword"
+	if this.tok != "" {
+		str += " " + strconv.Quote(this.tok)
+	}
+	return str + ">"
+}
+
+func (this *group) String() string {
+	str := "<group"
+	if this.tok != "" {
+		str += " " + strconv.Quote(this.tok)
+	}
 	return str + ">"
 }

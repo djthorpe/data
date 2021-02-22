@@ -24,7 +24,7 @@ type Table struct {
 		transform  []data.TransformFunc
 		iterator   data.IteratorFunc
 		compare    data.CompareFunc
-		name       string
+		name, ns   string
 	}
 	*header
 	r []*row
@@ -129,6 +129,12 @@ func (t *Table) Write(w io.Writer, opts ...data.TableOpt) error {
 			}
 			return result, nil
 		})
+	case t.hasOpt(optXml):
+		if dom := t.DOM(opts...); dom == nil {
+			return data.ErrInternalAppError
+		} else {
+			return dom.WriteEx(w, data.DOMWriteIndentSpace2)
+		}
 	case t.hasOpt(optCsv):
 		fallthrough
 	default:

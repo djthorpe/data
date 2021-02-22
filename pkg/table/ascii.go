@@ -29,7 +29,7 @@ const (
 
 func (t *Table) writeAscii(w io.Writer, fn funcRowWriter) error {
 	cols := t.header.cols()
-	fmt.Println(cols)
+
 	// Write top line
 	if err := t.asciiTop(w, cols); err != nil {
 		return err

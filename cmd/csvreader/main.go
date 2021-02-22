@@ -9,6 +9,8 @@ package main
 import (
 	"flag"
 	"fmt"
+	"net/http"
+	"net/url"
 	"os"
 
 	"github.com/djthorpe/data"
@@ -20,12 +22,13 @@ var (
 	flagDelimiter = flag.String("delim", "", "CSV field delimiter")
 	flagOutputCsv = flag.Bool("csv", false, "CSV output")
 	flagOutputSql = flag.Bool("sql", false, "SQL output")
+	flagOutputXml = flag.Bool("xml", false, "XML output")
 )
 
 func main() {
 	flag.Parse()
 	if flag.NArg() == 0 {
-		fmt.Fprintln(os.Stderr, "Missing filename argument")
+		fmt.Fprintln(os.Stderr, "Missing URL argument")
 		os.Exit(-1)
 	}
 
@@ -49,6 +52,8 @@ func main() {
 		outOpts = append(outOpts, t.OptCsv(0))
 	case *flagOutputSql:
 		outOpts = append(outOpts, t.OptSql("data"))
+	case *flagOutputXml:
+		outOpts = append(outOpts, t.OptXml("data", ""))
 	default:
 		outOpts = append(outOpts, t.OptAscii(0, data.BorderLines))
 	}
@@ -69,10 +74,33 @@ func main() {
 }
 
 func read(t data.Table, opts []data.TableOpt, path string) error {
-	if r, err := os.Open(path); err != nil {
+	url, err := url.Parse(path)
+	if err != nil {
 		return err
-	} else {
+	}
+	switch url.Scheme {
+	case "http", "https":
+		// Fetch data from remote
+		client := http.DefaultClient
+		resp, err := client.Get(url.String())
+		if err != nil {
+			return err
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			return fmt.Errorf("Error response %q", resp.Status)
+		}
+
+		return t.Read(resp.Body, opts...)
+	case "file", "":
+		r, err := os.Open(url.Path)
+		if err != nil {
+			return err
+		}
 		defer r.Close()
 		return t.Read(r, opts...)
+	default:
+		return fmt.Errorf("Unsupported scheme %q", url.Scheme)
 	}
 }

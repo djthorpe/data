@@ -443,3 +443,82 @@ func Test_Table_013(t *testing.T) {
 		t.Log("\n" + b.String())
 	}
 }
+
+func Test_Table_014(t *testing.T) {
+	c := table.NewTable("A", "B")
+
+	// Create XML then write out
+	if xml := c.DOM(); xml == nil {
+		t.Fatal("Unexpected nil returned from DOM")
+	} else {
+		buf := new(strings.Builder)
+		if err := xml.WriteEx(buf, 0); err != nil {
+			t.Fatal(err)
+		} else if buf.String() != "<table></table>" {
+			t.Fatalf("Unexpected return from DOM: %q", buf.String())
+		}
+	}
+
+	// Create XML then write out
+	if xml := c.DOM(c.OptXml("data", "")); xml == nil {
+		t.Fatal("Unexpected nil returned from DOM")
+	} else {
+		buf := new(strings.Builder)
+		if err := xml.WriteEx(buf, 0); err != nil {
+			t.Fatal(err)
+		} else if buf.String() != "<table id=\"data\"></table>" {
+			t.Fatalf("Unexpected return from DOM: %q", buf.String())
+		}
+	}
+
+	// Create XML then write out
+	if xml := c.DOM(c.OptXml("data", data.XmlNamespaceXHTML)); xml == nil {
+		t.Fatal("Unexpected nil returned from DOM")
+	} else {
+		buf := new(strings.Builder)
+		if err := xml.WriteEx(buf, 0); err != nil {
+			t.Fatal(err)
+		} else if buf.String() != "<table xmlns=\"http://www.w3.org/1999/xhtml\" id=\"data\"></table>" {
+			t.Fatalf("Unexpected return from DOM: %q", buf.String())
+		}
+	}
+
+	// Create XML then write out
+	if xml := c.DOM(c.OptHeader()); xml == nil {
+		t.Fatal("Unexpected nil returned from DOM")
+	} else {
+		buf := new(strings.Builder)
+		if err := xml.WriteEx(buf, 0); err != nil {
+			t.Fatal(err)
+		} else if buf.String() != "<table><thead><tr><th>A</th><th>B</th></tr></thead></table>" {
+			t.Fatalf("Unexpected return from DOM: %q", buf.String())
+		}
+	}
+
+	// Append one row to the table
+	c.Append(1, 2)
+
+	// Create XML then write out
+	if xml := c.DOM(); xml == nil {
+		t.Fatal("Unexpected nil returned from DOM")
+	} else {
+		buf := new(strings.Builder)
+		if err := xml.WriteEx(buf, 0); err != nil {
+			t.Fatal(err)
+		} else if buf.String() != "<table><tbody><tr><td>1</td><td>2</td></tr></tbody></table>" {
+			t.Fatalf("Unexpected return from DOM: %q", buf.String())
+		}
+	}
+
+	// Create XML with header then write out
+	if xml := c.DOM(c.OptHeader()); xml == nil {
+		t.Fatal("Unexpected nil returned from DOM")
+	} else {
+		buf := new(strings.Builder)
+		if err := xml.WriteEx(buf, 0); err != nil {
+			t.Fatal(err)
+		} else if buf.String() != "<table><thead><tr><th>A</th><th>B</th></tr></thead><tbody><tr><td>1</td><td>2</td></tr></tbody></table>" {
+			t.Fatalf("Unexpected return from DOM: %q", buf.String())
+		}
+	}
+}

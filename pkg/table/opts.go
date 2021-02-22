@@ -27,6 +27,7 @@ const (
 	optAscii
 	optCsv
 	optSql
+	optXml
 )
 
 /////////////////////////////////////////////////////////////////////
@@ -101,6 +102,14 @@ func (t *Table) OptCsv(delim rune) data.TableOpt {
 	}
 }
 
+func (t *Table) OptXml(id, ns string) data.TableOpt {
+	return func(t data.Table) {
+		t.(*Table).setOpt(optXml, true)
+		t.(*Table).opts.name = id
+		t.(*Table).opts.ns = ns
+	}
+}
+
 func (t *Table) OptSql(name string) data.TableOpt {
 	return func(t data.Table) {
 		t.(*Table).setOpt(optSql, true)
@@ -145,6 +154,8 @@ func (t *Table) applyOpt(opts []data.TableOpt) {
 	t.opts.border = []rune(data.BorderDefault)
 	t.opts.transform = []data.TransformFunc{}
 	t.opts.iterator = nil
+	t.opts.name = ""
+	t.opts.ns = ""
 
 	// Apply options
 	for _, opt := range opts {
