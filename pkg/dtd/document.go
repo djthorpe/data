@@ -1,30 +1,11 @@
 package dtd
 
-import (
-	"encoding/xml"
-	"fmt"
-	"io"
-)
+import "fmt"
 
 /////////////////////////////////////////////////////////////////////
-// XML DECODING
+// PRIVATE METHODS
 
-func (this *Document) UnmarshalXML(dec *xml.Decoder, start xml.StartElement) error {
-
-	fmt.Println("start: ", start)
-
-	// Read tokens until end
-	for {
-		t, err := dec.Token()
-		if err == io.EOF {
-			break
-		} else if err != nil {
-			return err
-		}
-
-		fmt.Println("  token: ", t)
-	}
-
-	// Return success
+func (this *Document) append(state State) error {
+	fmt.Println("Append: ", state)
 	return nil
 }
