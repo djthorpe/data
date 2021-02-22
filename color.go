@@ -26,4 +26,5 @@ const (
 	ColorWhite
 	ColorGray
 	ColorBrown
+	ColorPrimary
 )

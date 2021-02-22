@@ -9,6 +9,7 @@ import (
 	"sync"
 
 	"github.com/djthorpe/data"
+	"github.com/djthorpe/data/pkg/f32"
 )
 
 /////////////////////////////////////////////////////////////////////
@@ -108,7 +109,6 @@ var (
 	Plum                 = data.Color{221, 160, 221} // #DDA0DD
 	Violet               = data.Color{238, 130, 238} // #EE82EE
 	Orchid               = data.Color{218, 112, 214} // #DA70D6
-	Fuchsia              = data.Color{255, 0, 255}   // #FF00FF
 	Magenta              = data.Color{255, 0, 255}   // #FF00FF
 	MediumOrchid         = data.Color{186, 85, 211}  // #BA55D3
 	MediumPurple         = data.Color{147, 112, 219} // #9370DB
@@ -178,7 +178,7 @@ var (
 		"IndianRed":            SwatchColor{IndianRed, 5, data.ColorRed},
 		"Crimson":              SwatchColor{Crimson, 6, data.ColorRed},
 		"FireBrick":            SwatchColor{FireBrick, 7, data.ColorRed},
-		"Red":                  SwatchColor{Red, 8, data.ColorRed},
+		"Red":                  SwatchColor{Red, 8, data.ColorRed | data.ColorPrimary},
 		"DarkRed":              SwatchColor{DarkRed, 9, data.ColorRed},
 		"Coral":                SwatchColor{Coral, 10, data.ColorOrange},
 		"Tomato":               SwatchColor{Tomato, 11, data.ColorOrange},
@@ -195,11 +195,11 @@ var (
 		"PaleGoldenrod":        SwatchColor{PaleGoldenrod, 22, data.ColorYellow},
 		"Khaki":                SwatchColor{Khaki, 23, data.ColorYellow},
 		"DarkKhaki":            SwatchColor{DarkKhaki, 24, data.ColorYellow},
-		"Yellow":               SwatchColor{Yellow, 25, data.ColorYellow},
+		"Yellow":               SwatchColor{Yellow, 25, data.ColorYellow | data.ColorPrimary},
 		"LawnGreen":            SwatchColor{LawnGreen, 26, data.ColorGreen},
 		"Chartreuse":           SwatchColor{Chartreuse, 27, data.ColorGreen},
 		"LimeGreen":            SwatchColor{LimeGreen, 28, data.ColorGreen},
-		"Lime":                 SwatchColor{Lime, 29, data.ColorGreen},
+		"Lime":                 SwatchColor{Lime, 29, data.ColorGreen | data.ColorPrimary},
 		"ForestGreen":          SwatchColor{ForestGreen, 30, data.ColorGreen},
 		"Green":                SwatchColor{Green, 31, data.ColorGreen},
 		"DarkGreen":            SwatchColor{DarkGreen, 32, data.ColorGreen},
@@ -216,7 +216,7 @@ var (
 		"DarkOliveGreen":       SwatchColor{DarkOliveGreen, 43, data.ColorGreen},
 		"OliveDrab":            SwatchColor{OliveDrab, 44, data.ColorGreen},
 		"LightCyan":            SwatchColor{LightCyan, 45, data.ColorCyan},
-		"Cyan":                 SwatchColor{Cyan, 46, data.ColorCyan},
+		"Cyan":                 SwatchColor{Cyan, 46, data.ColorCyan | data.ColorPrimary},
 		"Aquamarine":           SwatchColor{Aquamarine, 48, data.ColorCyan},
 		"MediumAquamarine":     SwatchColor{MediumAquamarine, 49, data.ColorCyan},
 		"PaleTurquoise":        SwatchColor{PaleTurquoise, 50, data.ColorCyan},
@@ -237,7 +237,7 @@ var (
 		"CornflowerBlue":       SwatchColor{CornflowerBlue, 65, data.ColorBlue},
 		"SteelBlue":            SwatchColor{SteelBlue, 66, data.ColorBlue},
 		"RoyalBlue":            SwatchColor{RoyalBlue, 67, data.ColorBlue},
-		"Blue":                 SwatchColor{Blue, 68, data.ColorBlue},
+		"Blue":                 SwatchColor{Blue, 68, data.ColorBlue | data.ColorPrimary},
 		"MediumBlue":           SwatchColor{MediumBlue, 69, data.ColorBlue},
 		"DarkBlue":             SwatchColor{DarkBlue, 70, data.ColorBlue},
 		"Navy":                 SwatchColor{Navy, 71, data.ColorBlue},
@@ -250,8 +250,7 @@ var (
 		"Plum":                 SwatchColor{Plum, 78, data.ColorPurple},
 		"Violet":               SwatchColor{Violet, 79, data.ColorPurple},
 		"Orchid":               SwatchColor{Orchid, 80, data.ColorPurple},
-		"Fuchsia":              SwatchColor{Fuchsia, 81, data.ColorPurple},
-		"Magenta":              SwatchColor{Magenta, 82, data.ColorPurple},
+		"Magenta":              SwatchColor{Magenta, 82, data.ColorPurple | data.ColorPrimary},
 		"MediumOrchid":         SwatchColor{MediumOrchid, 83, data.ColorPurple},
 		"MediumPurple":         SwatchColor{MediumPurple, 84, data.ColorPurple},
 		"BlueViolet":           SwatchColor{BlueViolet, 85, data.ColorPurple},
@@ -266,7 +265,7 @@ var (
 		"DeepPink":             SwatchColor{DeepPink, 94, data.ColorPink},
 		"PaleVioletRed":        SwatchColor{PaleVioletRed, 95, data.ColorPink},
 		"MediumVioletRed":      SwatchColor{MediumVioletRed, 96, data.ColorPink},
-		"White":                SwatchColor{White, 97, data.ColorWhite},
+		"White":                SwatchColor{White, 97, data.ColorWhite | data.ColorPrimary},
 		"Snow":                 SwatchColor{Snow, 98, data.ColorWhite},
 		"Honeydew":             SwatchColor{Honeydew, 99, data.ColorWhite},
 		"MintCream":            SwatchColor{MintCream, 100, data.ColorWhite},
@@ -292,7 +291,7 @@ var (
 		"LightSlateGray":       SwatchColor{LightSlateGray, 120, data.ColorGray},
 		"SlateGray":            SwatchColor{SlateGray, 121, data.ColorGray},
 		"DarkSlateGray":        SwatchColor{DarkSlateGray, 122, data.ColorGray},
-		"Black":                SwatchColor{Black, 123, data.ColorGray},
+		"Black":                SwatchColor{Black, 123, data.ColorGray | data.ColorPrimary},
 		"Cornsilk":             SwatchColor{Cornsilk, 124, data.ColorBrown},
 		"BlancheDalmond":       SwatchColor{BlancheDalmond, 125, data.ColorBrown},
 		"Bisque":               SwatchColor{Bisque, 126, data.ColorBrown},
@@ -383,6 +382,24 @@ func Distance(x, y data.Color) float32 {
 	g := float64(x.G) - float64(y.G)
 	b := float64(x.B) - float64(y.B)
 	return float32(math.Sqrt((((512 + rmean) * r * r) / 256) + 4*g*g + (((767 - rmean) * b * b) / 256)))
+}
+
+// Nearest returns a color from the provided palette which is
+// nearest to the provided color. If the palette is nil then
+// all colors in the palette
+func Nearest(c data.Color, palette []data.Color) data.Color {
+	if len(palette) == 0 {
+		palette = Palette(data.ColorAll)
+	}
+	distance := f32.NaN()
+	nearest := c
+	for _, p := range palette {
+		if min := f32.Min(distance, Distance(p, c)); min != distance {
+			distance = min
+			nearest = p
+		}
+	}
+	return nearest
 }
 
 /////////////////////////////////////////////////////////////////////

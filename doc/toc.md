@@ -5,6 +5,7 @@
 * [Tables](table.md)
 * [The Document Object Model](dom.md)
 * [Canvas](canvas.md)
+* [Colour](color.md)
 * [Usage License](license.md)
 
 

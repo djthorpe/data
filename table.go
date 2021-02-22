@@ -13,35 +13,11 @@ import (
 
 type TableOpt func(Table)
 type Type uint
-type TableCellFlag uint
 type TransformFunc func(int, int, interface{}) (interface{}, error)
 type IteratorFunc func(int, []interface{}) error
 type CompareFunc func(a, b []interface{}) bool
 
-/////////////////////////////////////////////////////////////////////
-// CONSTANTS
-
-const (
-	Nil Type = (1 << iota)
-	String
-	Uint
-	Int
-	Float
-	Duration
-	Date
-	Datetime
-	Bool
-	Other
-	NumberTypes  = Uint | Int | Float
-	DefaultTypes = NumberTypes | Duration | Date | Datetime | Bool
-	TypeMin      = Nil
-	TypeMax      = Other
-)
-
-const (
-	BorderDefault = "+++++++++|-"
-	BorderLines   = "┌┬┐├┼┤└┴┘│─"
-)
+// type TableCellFlag uint TODO
 
 /////////////////////////////////////////////////////////////////////
 // INTERFACES
@@ -52,6 +28,9 @@ type Table interface {
 
 	// Write data with table options
 	Write(io.Writer, ...TableOpt) error
+
+	// Output XML of the table
+	// DOM(...TableOpt) Document // TODO
 
 	// Append a row to the table
 	Append(...interface{})
@@ -75,11 +54,11 @@ type Table interface {
 	Sort(CompareFunc)
 
 	// OptHeader used on Read to indicate there is a CSV header and
-	// with Write to output header in addition to data. Ignored for
+	// with Write and DOM to output header in addition to data. Ignored for
 	// ForMap and ForArray
 	OptHeader() TableOpt
 
-	// OptTransform used on Read, or Write transforms a value.
+	// OptTransform used on Read, Write or DOM to transform a value.
 	// Several transform functions can be used in series on a value.
 	// Transformation functions are called in series until nil or
 	// error returned. If ErrSkipTransform is returned, the next
@@ -111,6 +90,10 @@ type Table interface {
 	// can be directly ingested by SQLite. Including OptHeader() option will also
 	// include a statement to create the table
 	OptSql(string) TableOpt
+
+	// OptXml used to write XML format with the provided table id.  Including OptHeader()
+	// option will also include the <thead> element at the top of the XML
+	// OptXml(string) TableOpt TODO
 
 	// OptDuration used on Read to interpret values into durations (h,m,s,ms,ns)
 	// and truncate to the provided duration
@@ -149,6 +132,31 @@ type TableCol interface {
 	// or +Inf if no numbers in the column
 	Mean() float64
 }
+
+/////////////////////////////////////////////////////////////////////
+// CONSTANTS
+
+const (
+	Nil Type = (1 << iota)
+	String
+	Uint
+	Int
+	Float
+	Duration
+	Date
+	Datetime
+	Bool
+	Other
+	NumberTypes  = Uint | Int | Float
+	DefaultTypes = NumberTypes | Duration | Date | Datetime | Bool
+	TypeMin      = Nil
+	TypeMax      = Other
+)
+
+const (
+	BorderDefault = "+++++++++|-"
+	BorderLines   = "┌┬┐├┼┤└┴┘│─"
+)
 
 /////////////////////////////////////////////////////////////////////
 // METHODS

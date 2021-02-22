@@ -24,8 +24,8 @@ func Min(v ...float32) float32 {
 		return v[0]
 	}
 	min := v[0]
-	for _, v := range v {
-		if min > v {
+	for _, v := range v[1:] {
+		if IsNaN(min) || min > v {
 			min = v
 		}
 	}
@@ -51,8 +51,8 @@ func Max(v ...float32) float32 {
 		return v[0]
 	}
 	max := v[0]
-	for _, v := range v {
-		if max < v {
+	for _, v := range v[1:] {
+		if IsNaN(max) || max < v {
 			max = v
 		}
 	}
