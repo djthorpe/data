@@ -4,8 +4,6 @@ import (
 	"io"
 	"strings"
 	"time"
-
-	f32 "github.com/djthorpe/data/pkg/f32"
 )
 
 /////////////////////////////////////////////////////////////////////
@@ -202,12 +200,6 @@ func (t Type) Type() (Type, bool) {
 	}
 	// Otherwise, string needs to be used to represent
 	return String, isnil
-}
-
-// Float32 returns a float value from untyped or returns
-// NaN otherwise
-func Float32(v interface{}) float32 {
-	return f32.Cast(v)
 }
 
 /////////////////////////////////////////////////////////////////////

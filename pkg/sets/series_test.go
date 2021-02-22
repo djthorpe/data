@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/djthorpe/data"
+	"github.com/djthorpe/data/pkg/f32"
 	"github.com/djthorpe/data/pkg/sets"
 	"github.com/djthorpe/data/pkg/table"
 )
@@ -46,7 +47,7 @@ func Test_Series_002(t *testing.T) {
 		} else {
 			return []interface{}{
 				row[0].(string),
-				data.Point{data.Float32(row[3]), data.Float32(row[4])},
+				data.Point{f32.Cast(row[3]), f32.Cast(row[4])},
 				row[5].(float64),
 				row[6].(float64),
 			}, nil
