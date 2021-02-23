@@ -75,6 +75,15 @@ type RealSet interface {
 type TimeSet interface {
 	Set
 
+	// Minimum value
+	Min() time.Time
+
+	// Maximum value
+	Max() time.Time
+
+	// Duration between min and max, or zero
+	Duration() time.Duration
+
 	// Precision returns the precision of the values
 	Precision() time.Duration
 
