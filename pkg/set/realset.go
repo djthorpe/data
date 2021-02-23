@@ -54,8 +54,8 @@ func (set *RealSet) Max() float64 {
 
 func (set *RealSet) Append(values ...float64) {
 	for _, v := range values {
-		set.min = math.Min(set.min, v)
-		set.max = math.Max(set.max, v)
+		set.min = f64Min(set.min, v)
+		set.max = f64Max(set.max, v)
 		set.v = append(set.v, v)
 	}
 }
@@ -80,4 +80,27 @@ func (set *RealSet) String() string {
 		str = strings.TrimSuffix(str, ",") + ">"
 	}
 	return str + ">"
+}
+
+/////////////////////////////////////////////////////////////////////
+// PRIVATE METHODS
+
+func f64Min(a, b float64) float64 {
+	if math.IsNaN(a) {
+		return b
+	} else if math.IsNaN(a) {
+		return a
+	} else {
+		return math.Min(a, b)
+	}
+}
+
+func f64Max(a, b float64) float64 {
+	if math.IsNaN(a) {
+		return b
+	} else if math.IsNaN(a) {
+		return a
+	} else {
+		return math.Max(a, b)
+	}
 }

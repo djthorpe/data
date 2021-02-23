@@ -97,13 +97,13 @@ func (set *TimeSet) String() string {
 	str := "<timeset"
 	str += fmt.Sprintf(" name=%q", set.Name())
 	if min := set.Min(); min.IsZero() == false {
-		str += fmt.Sprintf(" min=%v", toTimeString(set.precision, min))
+		str += fmt.Sprintf(" min=%q", toTimeString(set.precision, min))
 	}
 	if max := set.Max(); max.IsZero() == false {
-		str += fmt.Sprintf(" max=%v", toTimeString(set.precision, max))
+		str += fmt.Sprintf(" max=%q", toTimeString(set.precision, max))
 	}
 	if precision := set.Precision(); precision != 0 {
-		str += fmt.Sprintf(" precision=%v", precision)
+		str += fmt.Sprintf(" precision=%q", TimePrecision(precision))
 	}
 	if len(set.v) > 0 {
 		str += " <"
@@ -155,22 +155,22 @@ func (p TimePrecision) Min(q TimePrecision) TimePrecision {
 }
 
 func toPrecision(t time.Time) TimePrecision {
-	if t.Truncate(time.Duration(Day)) != t {
+	if t.Truncate(time.Duration(Day)) == t {
 		return Day
 	}
-	if t.Truncate(time.Hour) != t {
+	if t.Truncate(time.Hour) == t {
 		return Hour
 	}
-	if t.Truncate(time.Minute) != t {
+	if t.Truncate(time.Minute) == t {
 		return Minute
 	}
-	if t.Truncate(time.Second) != t {
+	if t.Truncate(time.Second) == t {
 		return Second
 	}
-	if t.Truncate(time.Millisecond) != t {
+	if t.Truncate(time.Millisecond) == t {
 		return Millisecond
 	}
-	if t.Truncate(time.Microsecond) != t {
+	if t.Truncate(time.Microsecond) == t {
 		return Microsecond
 	}
 	// By default, return a minimum precision of nanosecond
@@ -186,11 +186,11 @@ func (p TimePrecision) String() string {
 	case p == Millisecond:
 		return "ms"
 	case p == Second:
-		return "sec"
+		return "second"
 	case p == Minute:
-		return "min"
+		return "minute"
 	case p == Hour:
-		return "hr"
+		return "hour"
 	case p == Day:
 		return "day"
 	default:

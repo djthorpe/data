@@ -9,6 +9,7 @@ import (
 
 type Element struct {
 	data.CanvasGroup
+	data.Orientation
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -25,7 +26,7 @@ func (this *Viz) NewGroup(class string, elems ...data.CanvasElement) *Element {
 		elem.CanvasGroup = group
 	}
 
-	// Set class
+	// Set classes
 	if class != "" {
 		if group.Class(class) == nil {
 			this.Remove(group)

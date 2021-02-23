@@ -12,6 +12,7 @@ COMMANDS = $(wildcard ./cmd/*)
 commands: builddir $(COMMANDS)
 
 $(COMMANDS): 
+	@echo "make ${BUILDDIR}/${@}"
 	@PKG_CONFIG_PATH="$(PKG_CONFIG_PATH)" $(GO) build -o ${BUILDDIR}/$@ -tags "$(TAGS)" ${GOFLAGS} ./$@
 
 .PHONY: test
