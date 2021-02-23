@@ -21,7 +21,7 @@ The `csvreader` command can be used to extract CSV data and transform to ASCII, 
 
 ```go
 bash% export URL=https://raw.githubusercontent.com/google/dspl/master/samples/google/canonical/countries.csv
-bash% ./csvreader (-xml|-sql|-csv) ${URL}
+bash% ./build/cmd/csvreader (-xml|-sql|-csv) ${URL}
 ```
 
 These screenshots demonstrate ASCII and SQL output:
@@ -29,6 +29,26 @@ These screenshots demonstrate ASCII and SQL output:
 ![csvreader ASCII output](csvreader-ascii.png)
 
 ![csvreader SQL output](csvreader-sql.png)
+
+The command line arguments are as follows:
+
+```
+Syntax:
+
+  csvreader <flags> <url|path> <url|path>...
+  
+Usage of csvreader:
+  -header
+    	Read and write table header (default true)
+  -sql
+    	SQL output
+  -xml
+    	XML output
+  -csv
+    	CSV output
+  -delim string
+    	CSV field delimiter
+```
 
 ## Color Swatches and SVG output
 
@@ -41,11 +61,24 @@ The `colorswatch` command demonstrates:
 For example, the following command produces a palette of red, blue and green colours:
 
 ```go
-bash% ./colorswatch red blue green > swatch.svg
-bash% open swatch.svg
+bash% ./build/cmd/colorswatch red blue green > build/swatch.svg
+bash% open build/swatch.svg
 ```
 
 ## Constructing SVG from instructions
 
-The `tiger` command takes a set of input instructions and generates an SVG file.
+The `tiger` command takes a set of input instructions and generates an SVG file. The instructions
+come from an example on the Raspberry Pi and are stored in `etc/dataset/tiger_data.txt`. In order
+to generate the SVG file, use the following command:
+
+```go
+bash% ./build/cmd/tiger -rotate 180 etc/dataset/tiger_data.txt > build/tiger.svg
+bash% open build/tiger.svg
+```
+
+The resultant output is as follows:
+
+![Tiger SVG output](tiger-svg.png)
+
+
 
