@@ -1,4 +1,4 @@
-package sets
+package set
 
 import (
 	"github.com/djthorpe/data"

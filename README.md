@@ -6,7 +6,7 @@ This repository contains various data extraction, transformation processing and 
 * [`data.Table`](doc/table.md) provides you with a way to ingest, transform and process data tables in comma-separated value format and output in CSV, ASCII and SQL formats;
 * [`data.DOM`](doc/dom.md) provides a document object model which can read and write the XML format in addition to validating the XML;
 * [`data.Canvas`](doc/canvas.md) provides a drawing canvas on which graphics primitives such as lines, circles, text and rectangles can be placed. Additionally transformation, grouping and stylizing of primitives can be applied. Canvases can currently be written in SVG format, the intention is to also allow rendering using OpenGL later.
-* [`data.Set` and `data.Series`](doc/sets.md) are data structures to store ordered sets of labels, real numbers, points and datetime values. They can subsequently be used to generate graphics (charts and maps, for example) or as input vectors to algorithms.
+* [`data.Set`](doc/set.md) and [`data.Series`](doc/set.md) are data structures to store ordered sets of labels, real numbers, points and datetime values. They can subsequently be used to generate graphics (charts and maps, for example) or as input vectors to algorithms.
 
 There are also some additional packages which act as a basis for the interfaces:
 

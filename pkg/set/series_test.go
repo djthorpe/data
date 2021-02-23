@@ -1,4 +1,4 @@
-package sets_test
+package set_test
 
 import (
 	"os"
@@ -6,7 +6,7 @@ import (
 
 	"github.com/djthorpe/data"
 	"github.com/djthorpe/data/pkg/f32"
-	"github.com/djthorpe/data/pkg/sets"
+	"github.com/djthorpe/data/pkg/set"
 	"github.com/djthorpe/data/pkg/table"
 )
 
@@ -15,7 +15,7 @@ const (
 )
 
 func Test_Series_001(t *testing.T) {
-	s := sets.NewSeries()
+	s := set.NewSeries()
 	if s == nil {
 		t.Fatal("Expected non-nil series")
 	}
@@ -24,7 +24,7 @@ func Test_Series_001(t *testing.T) {
 
 func Test_Series_002(t *testing.T) {
 	// Create table and series
-	series := sets.NewSeries()
+	series := set.NewSeries()
 	table := table.NewTable()
 	if series == nil || table == nil {
 		t.Fatal("Expected non-nil series and table")
