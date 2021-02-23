@@ -89,6 +89,7 @@ type Canvas interface {
 	// Fill styles
 	NoFill() CanvasStyle
 	Fill(Color, float32) CanvasStyle
+	// TODO FillPattern(string) CanvasStyle
 	FillRule(FillRule) CanvasStyle
 
 	// Stroke styles
@@ -122,7 +123,7 @@ type CanvasGroup interface {
 	// Marker orientation, when not set or zero, uses "auto"
 	OrientationAngle(float32) CanvasGroup
 
-	// Add elements to group
+	// Add additional elements to group
 	Append(...CanvasElement) CanvasGroup
 }
 

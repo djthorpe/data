@@ -70,13 +70,17 @@ func NewStyles(defs []data.CanvasStyle) *Style {
 	this.defs = make(map[styleop]string, len(defs))
 
 	// Add styles
+	ops := styleNone
 	for _, def := range defs {
 		if def == nil {
 			return nil
 		} else if def, ok := def.(*styledef); ok == false {
 			return nil
-		} else if err := this.setDef(def); err != nil {
-			return nil
+		} else {
+			ops |= def.Op
+			if err := this.setDef(ops, def); err != nil {
+				return nil
+			}
 		}
 	}
 
@@ -86,12 +90,12 @@ func NewStyles(defs []data.CanvasStyle) *Style {
 /////////////////////////////////////////////////////////////////////
 // PRIVATE METHODS
 
-func (this *Style) setDef(def *styledef) error {
+func (this *Style) setDef(ops styleop, def *styledef) error {
 	for v := styleMin; v <= styleMax; v <<= 1 {
 		if def.Op&v != v {
 			continue
 		}
-		if str, err := v.StyleString(def); err != nil {
+		if str, err := v.StyleString(ops, def); err != nil {
 			return err
 		} else if str != "" {
 			this.defs[v] = str
@@ -288,22 +292,20 @@ func (f styleop) String() string {
 	}
 }
 
-func (f styleop) StyleString(args *styledef) (string, error) {
+func (f styleop) StyleString(ops styleop, args *styledef) (string, error) {
+	isFillNone := ops&fillNone == fillNone
+	isStrokeNone := ops&strokeNone == strokeNone
 	switch f {
 	case fillNone, strokeNone:
 		return fmt.Sprint(f, ": none;"), nil
-	case fillColor, strokeColor:
-		return fmt.Sprint(f, ": ", color.String(args.Color), ";"), nil
-	case fillOpacity, strokeOpacity:
-		return fmt.Sprint(f, ": ", f32.String(args.Opacity), ";"), nil
-	case strokeWidth, miterLimit:
-		return fmt.Sprint(f, ": ", f32.String(args.Width), ";"), nil
-	case lineCap:
-		return fmt.Sprint(f, ": ", args.Cap, ";"), nil
-	case lineJoin:
-		return fmt.Sprint(f, ": ", args.Join, ";"), nil
-	case fillRule:
-		return fmt.Sprint(f, ": ", args.Rule, ";"), nil
+	case fillColor, fillOpacity, fillRule:
+		if isFillNone == false {
+			return f.StyleStringEx(args)
+		}
+	case strokeColor, strokeOpacity, strokeWidth, miterLimit, lineCap, lineJoin:
+		if isStrokeNone == false {
+			return f.StyleStringEx(args)
+		}
 	case markerStart, markerMid, markerEnd:
 		return fmt.Sprint(f, ": ", args.Uri, ";"), nil
 	case fontSize:
@@ -319,12 +321,39 @@ func (f styleop) StyleString(args *styledef) (string, error) {
 	default:
 		return "", data.ErrBadParameter.WithPrefix("SetStyle: ", f)
 	}
+	// Default case
+	return "", nil
+}
+
+func (f styleop) StyleStringEx(args *styledef) (string, error) {
+	switch f {
+	case fillColor:
+		return fmt.Sprint(f, ": ", color.String(args.Color), ";"), nil
+	case strokeColor:
+		return fmt.Sprint(f, ": ", color.String(args.Color), ";"), nil
+	case fillOpacity:
+		return fmt.Sprint(f, ": ", f32.String(args.Opacity), ";"), nil
+	case strokeOpacity:
+		return fmt.Sprint(f, ": ", f32.String(args.Opacity), ";"), nil
+	case strokeWidth:
+		return fmt.Sprint(f, ": ", f32.String(args.Width), ";"), nil
+	case miterLimit:
+		return fmt.Sprint(f, ": ", f32.String(args.Width), ";"), nil
+	case lineCap:
+		return fmt.Sprint(f, ": ", args.Cap, ";"), nil
+	case lineJoin:
+		return fmt.Sprint(f, ": ", args.Join, ";"), nil
+	case fillRule:
+		return fmt.Sprint(f, ": ", args.Rule, ";"), nil
+	default:
+		return "", data.ErrBadParameter.WithPrefix("SetStyle: ", f)
+	}
 }
 
 func (s *Style) String() string {
 	attrs := make([]string, 0, len(s.defs))
 	for v := styleMin; v <= styleMax; v <<= 1 {
-		if style, exists := s.defs[v]; exists {
+		if style, exists := s.defs[v]; exists && style != "" {
 			attrs = append(attrs, style)
 		}
 	}
