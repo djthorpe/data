@@ -42,28 +42,30 @@ This module is currently **in development** and the status of each package is as
 * `pkg/table` is mostly feature-complete:
   * Requires code to change width of table in ASCII mode;
   * Add code for stylizing output in ASCII mode (color, bold, underline, italic);
-  * Add code for input and output of XML.
   * A test is failing and needs to be fixed.
 * `pkg/dom` is mostly feature-complete;
-* `pkg/schema` has not been started and needs to be writen, to validated parsed
-  XML documents against a schema.
+* `pkg/dtd` has just been started and needs to be writen, to validated parsed
+  XML documents against a DTD definition.
 * `pkg/canvas` is in development. There is work to:
-  * Ensure all primitives are supported;
+  * Ensure the following primitives & features are supported:
+    * Linear Gradients
+    * Patterns
+    * Line dashes
   * Ensure as many SVG files can be parsed as possible;
-  * Provide rendering for PDF and bitmap images as well as SVG;
-  * Provide bindings for screen rendering through OpenGL and OpenVG, although that may occur
-    through another repository.
-* `pkg/css` has not been started and needs to be integrated into canvas, so that
-  style can be defined both on elements and at the head of an SVG document, or an 
-  external stylesheet can be referenced.
+  * Integrate with stylesheets (see below).
+* `pkg/stylesheet` has not been started and needs to be integrated 
+  into canvas, so that style can be defined both on elements and at 
+  the head of an SVG document, or an external stylesheet can be referenced.
 * `pkg/color` is in development. There is work to:
-  * Requires some tests and documentation;
-  * A way to select different palettes
-  * Test code for nearest distance between colors
+  * Requires some more tests and documentation (in progress);
 * `pkg/geom` is in development.
+  * Requires some tests and documentation (in progress);
 * `pkg/viz` is in development.
+  * Scales from all sets;
+  * Legend from labelset
+  * Line plots from point sets;
+  * Bar & pie charts from real sets.
 * `pkg/set` is in development. There is work to:
-  * Split out code to implement sets for labels, points, f32, date and datetime.
   * Documentation
   * Tests
 

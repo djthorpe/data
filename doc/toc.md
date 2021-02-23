@@ -9,5 +9,3 @@
 * [Colour](color.md)
 * [Geometry](geom.md)
 * [Usage License](license.md)
-
-
